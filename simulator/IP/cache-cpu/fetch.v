@@ -34,6 +34,6 @@ end
 
 
 assign fetch_o_instr        =  icache_o_instr;
-assign fetch_o_pre_pc       =  fetch_o_pc + 64'd4;
+assign fetch_o_pre_pc       =  fetch_o_pc + 64'd4; //这个是预测的下一条PC
 assign fetch_o_commit_info  = {commit, icache_o_instr, fetch_o_pre_pc, fetch_o_pc};
 endmodule

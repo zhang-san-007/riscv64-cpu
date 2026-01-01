@@ -1,5 +1,5 @@
 TOPNAME :=CPU
-CPU_DIR=$(CPU_HOME)/IP/rv64/my
+CPU_DIR=$(SIM_HOME)/IP/rv64-pipeline-cpu-2025
 SRC_DIR:=$(SIM_HOME)/src  
 
 
@@ -11,7 +11,7 @@ VL_ROOT_HEADER=\\\"$(PREFIX_NAME).h\\\"
 
 
 VERILATOR = verilator
-VERILATOR_CFLAGS += -MMD --build -j 8 -trace -cc -O0 --x-assign fast --x-initial fast --noassert -I$(CPU_DIR)
+VERILATOR_CFLAGS += -MMD --build -j 8 -trace-fst -cc -O0 --x-assign fast --x-initial fast --noassert -I$(CPU_DIR)
 VERILATOR_CFLAGS += $(TOPNAME_FLAG)
 VERILATOR_CFLAGS += $(PREFIX_FLAG)
 
@@ -45,7 +45,7 @@ CXXFLAGS += -fpermissive
 $(BIN): $(VSRCS) $(CSRCS)
 	$(shell mkdir -p $(BUILD_DIR))
 	@-rm -rf $(OBJ_DIR)
-	@rm -f waveform.fst
+	@rm -f waveform.vcd
 	$(VERILATOR) $(VERILATOR_CFLAGS) $^    \
 		$(addprefix -CFLAGS ,  $(CXXFLAGS)) \
 		$(addprefix -LDFLAGS , $(LDFLAGS)) \
@@ -60,11 +60,10 @@ all: default
 run: clean $(BIN)
 	$(BIN) $(ARGS) $(IMAGE)
 sim: 
-	gtkwave waveform.vcd
+	gtkwave $(SIM_HOME)/waveform.fst $(SIM_HOME)/waveform.view
 
 clean:
 	rm -rf $(BUILD_DIR)
-	rm -f waveform.vcd
-
+	rm -f $(SIM_HOME)/waveform.fst    # 修改后
 
 .PHONY: default all clean run sim

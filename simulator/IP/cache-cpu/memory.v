@@ -28,22 +28,25 @@ wire inst_sd    =   regM_i_load_store_info[0];
 wire inst_load  =   inst_lb | inst_lh | inst_lw | inst_ld | inst_lbu | inst_lhu | inst_lwu;
 wire inst_store =   inst_sb | inst_sh | inst_sw | inst_sd;
 
-reg [63:0] mem_rdata;
+ reg [63:0] mem_rdata;
 always @(*) begin
-    if(inst_load)begin
+    if(inst_load) begin
         mem_rdata = dpi_mem_read(mem_addr, 8);
     end
     else begin
         mem_rdata = 64'd0;
     end
 end
-assign memory_o_memdata  = (inst_lb)  ?     { {56{mem_rdata[7]}},    mem_rdata[7 :0]}   :
-                           (inst_lh)  ?     { {48{mem_rdata[15]}},   mem_rdata[15:0]}   :  
-                           (inst_lw)  ?     { {32{mem_rdata[31]}},   mem_rdata[31:0]}   :
-                           (inst_ld)  ?     {                        mem_rdata[63:0]}   :
-                           (inst_lbu) ?     { 56'd0,                 mem_rdata[7 :0]}   :
-                           (inst_lhu) ?     { 48'd0,                 mem_rdata[15:0]}   :
-                           (inst_lwu) ?     { 32'd0,                 mem_rdata[31:0]}   : 64'd0;
+
+assign memory_o_memdata = 
+    (inst_lb)  ? { {56{mem_rdata[7]}},  mem_rdata[7:0]  } : // 8位带符号
+    (inst_lh)  ? { {48{mem_rdata[15]}}, mem_rdata[15:0] } : // 16位带符号
+    (inst_lw)  ? { {32{mem_rdata[31]}}, mem_rdata[31:0] } : // 32位带符号
+    (inst_ld)  ? {                     mem_rdata[63:0] } : // 64位
+    (inst_lbu) ? { 56'd0,              mem_rdata[7:0]  } : // 8位无符号
+    (inst_lhu) ? { 48'd0,              mem_rdata[15:0] } : // 16位无符号
+    (inst_lwu) ? { 32'd0,              mem_rdata[31:0] } : // 32位无符号
+    64'd0;
 
 //要写入的数据
 always @(posedge clk) begin

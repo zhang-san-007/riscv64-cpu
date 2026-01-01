@@ -161,9 +161,9 @@ assign execute_need_jump = (inst_beq    && ($signed  (regE_regdata1) == $signed 
 							 (op_jal | op_jalr)                                                         ? 1'b1: 1'b0;
 
 wire [WIDTH-1:0] tmp = op_jalr ?  (execute_alu_result & ~1) : 64'd0;
-assign  execute_jump_pc   = op_jalr               ? (execute_alu_result & ~1)           : 
+assign  execute_jump_pc   =   op_jalr               ? (execute_alu_result & ~1)           : 
                               op_jal                ?  execute_alu_result                 : 
-                              execute_need_jump   ?  execute_alu_result                 : 64'd0;
+                              execute_need_jump     ?  execute_alu_result                 : 64'd0;
 
 
 assign execute_commit_info = execute_need_jump ? {regE_commit_info[160], regE_commit_info[159:128], execute_jump_pc, regE_commit_info[WIDTH-1:0]} : regE_commit_info;

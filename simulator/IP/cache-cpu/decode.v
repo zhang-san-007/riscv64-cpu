@@ -94,15 +94,6 @@ wire inst_srl  				= (inst_alu_reg & func3_101 & func7_0000000);
 wire inst_sra  				= (inst_alu_reg & func3_101 & func7_0100000);
 wire inst_or   				= (inst_alu_reg & func3_110 & func7_0000000);
 wire inst_and  				= (inst_alu_reg & func3_111 & func7_0000000);
-wire inst_addw				= (inst_alu_regw & func3_000 & func7_0000000);
-wire inst_subw				= (inst_alu_regw & func3_000 & func7_0100000);
-wire inst_sllw				= (inst_alu_regw & func3_001 & func7_0000000);
-wire inst_srlw				= (inst_alu_regw & func3_101 & func7_0000000);
-wire inst_sraw				= (inst_alu_regw & func3_101 & func7_0100000);
-
-
-
-//alu_reg_w
 wire inst_mul				= (inst_alu_reg & func3_000  & func7_0000001);
 wire inst_mulh				= (inst_alu_reg & func3_001  & func7_0000001);
 wire inst_mulhsu			= (inst_alu_reg & func3_010  & func7_0000001);
@@ -111,6 +102,13 @@ wire inst_div				= (inst_alu_reg & func3_100  & func7_0000001);
 wire inst_divu				= (inst_alu_reg & func3_101  & func7_0000001);
 wire inst_rem				= (inst_alu_reg & func3_110  & func7_0000001);
 wire inst_remu				= (inst_alu_reg & func3_111  & func7_0000001);
+
+//alu_reg_w
+wire inst_addw				= (inst_alu_regw & func3_000 & func7_0000000);
+wire inst_subw				= (inst_alu_regw & func3_000 & func7_0100000);
+wire inst_sllw				= (inst_alu_regw & func3_001 & func7_0000000);
+wire inst_srlw				= (inst_alu_regw & func3_101 & func7_0000000);
+wire inst_sraw				= (inst_alu_regw & func3_101 & func7_0100000);
 wire inst_mulw				= (inst_alu_regw & func3_000 & func7_0000001);
 wire inst_divw				= (inst_alu_regw & func3_100 & func7_0000001);
 wire inst_divuw				= (inst_alu_regw & func3_101 & func7_0000001);
@@ -150,6 +148,7 @@ wire inst_csrrc  			= (inst_system & func3_011);
 wire inst_csrrwi 			= (inst_system & func3_101);
 wire inst_csrrsi 			= (inst_system & func3_110);
 wire inst_csrrci 			= (inst_system & func3_111);
+ 
 
 //store
 wire inst_sb				= (inst_store & func3_000);
@@ -233,6 +232,7 @@ assign decode_o_alu_info = {
 				 (inst_remw					),
 				 (inst_remuw				) 
 };
+
 wire [63:0] inst_i_imm = { {52{instr[31]}}, instr[31:20] };		
 wire [63:0] inst_s_imm = { {52{instr[31]}}, instr[31:25], instr[11:7] };	
 wire [63:0] inst_b_imm = { {51{instr[31]}}, instr[31],    instr[7],      instr[30:25], instr[11:8 ], 1'b0};
@@ -264,14 +264,15 @@ assign decode_o_reg_wen = inst_i_type | inst_u_type | inst_r_type | inst_j_type;
 
 wire [63:0] regfile_o_regdata1;
 wire [63:0] regfile_o_regdata2;
+
 regfile u_regfile(
-	.clk                     	(clk                      	),
-	.rst                     	(rst                      	),
+	.clk                     	(clk                 ),
+	.rst                     	(rst                 ),
 	.write_back_i_rd      		(write_back_i_rd      		),
 	.write_back_i_data    		(write_back_i_data     		),
 	.write_back_i_reg_wen 		(write_back_i_reg_wen  		),
-	.decode_i_rs1            	(rs1             			),
-	.decode_i_rs2            	(rs2             			),
+	.decode_i_rs1            	(rs1                 ),
+	.decode_i_rs2            	(rs2             	 ),
 	.regfile_o_regdata1      	(regfile_o_regdata1     	),
 	.regfile_o_regdata2      	(regfile_o_regdata2       	)
 );

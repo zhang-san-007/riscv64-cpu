@@ -20,8 +20,9 @@ const char* reg_name(int idx);
 
 int 	check_reg_idx(int idx);
 int 	check_csr_idx(int idx);
+#define pc_self  (cpu.pc)
 #define gpr(idx) (cpu.gpr[check_reg_idx(idx)])
-#define csr(idx) (cpu.gpr[check_csr_idx(idx)])
+#define csr(idx) (cpu.csr[check_csr_idx(idx)])
 
 
 //init_monitor.c
@@ -54,8 +55,8 @@ static 		word_t arg2val(char *arg);
 void 		init_disasm(const char *triple);
 void 		disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
 
-void difftest_step(paddr_t pc, paddr_t npc);
-bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc);
+void        difftest_step(commit_t *commit);
+bool        isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc);
 
 
 uint64_t get_time();
@@ -77,5 +78,10 @@ word_t	 pmem_read(paddr_t addr, int len);
 void	 pmem_write(paddr_t addr, int len, word_t data);
 
 
-void     instr_trace(word_t pc, word_t commit_instr);
+
+//trace 
+void     instr_trace(u64 pc, u32 commit_instr);
+void     instr_itrace_display();
+void     instr_itrace(u64 pc, u32 instr);
+
 #endif

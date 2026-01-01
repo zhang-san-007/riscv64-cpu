@@ -9,6 +9,12 @@ module CPU(
     output wire [63:0]          cur_pc
 );
 
+
+
+csr u_csr(
+    .clk(clk),
+    .rst(rst)
+);
 // output declaration of module pc
 wire [63:0] pc;
 

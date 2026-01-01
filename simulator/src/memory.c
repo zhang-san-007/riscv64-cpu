@@ -70,3 +70,5 @@ void paddr_write(paddr_t addr, int len, word_t data) {
 
 
 
+//pmem_read
+//p
