@@ -14,6 +14,7 @@ VERILATOR = verilator
 VERILATOR_CFLAGS += -MMD --build -j 8 -trace-fst -cc -O0 --x-assign fast --x-initial fast --noassert -I$(CPU_DIR)
 VERILATOR_CFLAGS += $(TOPNAME_FLAG)
 VERILATOR_CFLAGS += $(PREFIX_FLAG)
+VERILATOR_CFLAGS += -I$(CPU_DIR)
 
 
 BUILD_DIR = $(SIM_HOME)/build

@@ -80,9 +80,8 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
 static void display_diff_error(CPU_state *ref, u64 pc, u64 next_pc, const char *msg) {
     // 1. 打印指令轨迹（最近20条）
 
-    printf("\n%-9s\n", ANSI_FMT("DIFFTEST ERROR", ANSI_FG_YELLOW ANSI_BG_RED));
-    printf("[NPC] 错误原因: %s\n", msg);
-    printf("[NPC] 出错位置: pc = [0x%016lx]\n", pc);
+    printf("\n%-9s\n", ANSI_FMT("DIFFTEST ERROR", ANSI_FG_YELLOW ANSI_BG_RED));         
+    printf("[NPC] 执行完pc=[0x%016lx]这条指令后出错, 错误原因: %s\n", pc, msg);
     printf("[NPC] PC 状态: [参考 REF.pc]=0x%016lx, [你的 DUT.pc]=0x%016lx\n", ref->pc, next_pc);
     instr_itrace_display();
 
