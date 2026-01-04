@@ -51,21 +51,20 @@ wire inst_jal       	= (opcode == 7'b11011_11); 	//opcode=11011    	jal
 wire inst_jalr      	= (opcode == 7'b11001_11); 	//opcode=11001    	jalr	
 wire inst_lui       	= (opcode == 7'b01101_11); 	//opcode=01101    	lui    
 wire inst_auipc     	= (opcode == 7'b00101_11); 	//opcode=00101    	auipc  
-wire inst_alu_reg_imm   = (opcode == 7'b00100_11); 	//opcode=00100    	addi slti slti xori ori  andi slli  srli  srai  
+wire inst_alu_reg_imm   = (opcode == 7'b00100_11); 	//opcode=00100    	ori  andi slli  addi slti sltiu xori srli  srai  
 wire inst_alu_reg_immw  = (opcode == 7'b00110_11);  //opcode=00110		addiw slliw srliw sraiw 
-
 wire inst_alu_reg_reg   = (opcode == 7'b01100_11); 	//opcode=01100    	add  sub  sll  slt  sltu xor srl   sra  or and mul mulh mulhsu mulhu div  divu  rem  remu 
 wire inst_alu_reg_regw  = (opcode == 7'b01110_11); 	//opcode=01110    	addw subw sllw               srlw  sraw        mulw                  divw divuw remw remuw
 wire inst_branch   	 	= (opcode == 7'b11000_11); 	//opcode=11000 	 	beq, bne, blt, bge bltu bgeu
 wire inst_load      	= (opcode == 7'b00000_11); 	//opcode=00000		lb	lh	lw	lbu	lhu lwu ld
 wire inst_store     	= (opcode == 7'b01000_11);	//opcode=01000		sb,sh,sw sd
-
-
 wire inst_system    	= (opcode == 7'b11100_11);	//opcode=11100		csrrw  csrrs  csrrc  uret sret  mret
 													//                  csrrwi csrrsi csrrci ecall  ebreak   wfi sfence.vma 
 wire inst_fence     	= (opcode == 7'b00011_11);  //opcode=00011      fence fence.i
 wire inst_amo			= (opcode == 7'b01011_11);	//opcode=01011		lrw scw amoswapw amoaddw amoxorw amoandw amoorw amominw amomaxw amominuw amomaxuw
 													//					lrd scd amoswapd amoaddd amoxord amoandd amoord amomind amomaxd amominud amomaxuw
+
+
 //alu_reg_imm
 wire inst_addi  = inst_alu_reg_imm   & (func3 == 3'b000);
 wire inst_slli  = inst_alu_reg_imm   & (func3 == 3'b001)  & (func7 == 7'b0000000);

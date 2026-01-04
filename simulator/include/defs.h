@@ -77,11 +77,12 @@ uint8_t* guest_to_host(paddr_t paddr);
 word_t	 pmem_read(paddr_t addr, int len);
 void	 pmem_write(paddr_t addr, int len, word_t data);
 
-
-
-//trace 
+//trace----->instr_trace
 void     instr_trace(u64 pc, u32 commit_instr);
 void     instr_itrace_display();
 void     instr_itrace(u64 pc, u32 instr);
+//trace---->instr_profile
+void instr_coverage_display();
+void mark_instr_executed(u32 instr);
 
 #endif

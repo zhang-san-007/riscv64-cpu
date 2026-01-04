@@ -19,6 +19,8 @@
 #define ANSI_BG_CYAN    "\33[1;46m"
 #define ANSI_BG_WHITE   "\33[1;47m"
 #define ANSI_NONE       "\33[0m"
+#define ANSI_FG_RESET  "\33[0m"
+#define ANSI_BOLD      "\33[1m"
 #define ANSI_FMT(str, fmt) fmt str ANSI_NONE
 
 #define log_write(...) IFDEF(CONFIG_TARGET_NATIVE_ELF, \

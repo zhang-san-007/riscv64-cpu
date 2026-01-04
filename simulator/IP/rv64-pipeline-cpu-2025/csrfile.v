@@ -1,48 +1,54 @@
-// module csr(
-//     input clk,
-//     input rst
-// ); 
+module csr(
+    input clk,
+    input rst
+    
+); 
 
-// //--------------------------------------------------------------------------
-// // 1. Control and Status Registers (Read/Write)
-// //--------------------------------------------------------------------------
-// // Machine Trap Setup
-// reg [63:0] mstatus;    // Machine Status Register，
-// reg [63:0] medeleg;    // Machine Exception Delegation Register
-// reg [63:0] mideleg;    // Machine Interrupt Delegation Register
-// reg [63:0] mie;        // Machine Interrupt Enable Register
-// reg [63:0] mtvec;      // Machine Trap-Vector Base-Address Register
-// reg [63:0] mcounteren; // Machine Counter Enable Register
+// Machine Information Registers
+import "DPI-C" function void get_m_information_csr  (input longint mvendorid, input longint marchid, input longint mimpid, input longint mhartid, input longint mconfigptr);
+// Machine Trap Setup and Handling
+import "DPI-C" function void get_m_trap_setup_csr   (input longint mstatus, input longint misa, input longint medeleg, input longint mideleg, input longint mie, input longint mtvec, input longint mcounteren);
+import "DPI-C" function void get_m_trap_handing_csr (input longint mscratch, input longint mepc, input longint mcause, input longint mtval, input longint mip);
+import "DPI-C" function void get_m_counter_timer_csr(input longint mcycle, input longint minstret);
 
-// // Machine Trap Handling
-// reg [63:0] mscratch;   // Machine Scratch Register (for temporary storage)
-// reg [63:0] mepc;       // Machine Exception Program Counter
-// reg [63:0] mcause;     // Machine Cause Register
-// reg [63:0] mtval;      // Machine Trap Value Register
-// reg [63:0] mip;        // Machine Interrupt Pending Register
+// Supervisor Mode Registers
+import "DPI-C" function void get_s_mmu               (input longint stap);
+import "DPI-C" function void get_s_trap_setup_csr   (input longint sstatus, input longint sie, input longint stvec, input longint scounteren);
+import "DPI-C" function void get_s_trap_handing_csr (input longint sscratch, input longint sepc, input longint scause, input longint stval, input longint sip);
 
-// // Machine Counter/Timers
-// reg [63:0] mcycle;     // Machine Cycle Counter
-// reg [63:0] minstret;   // Machine Instructions-Retired Counter
+// User Mode Registers
+import "DPI-C" function void get_u_counter_timer_csr(input longint cycle, input longint time, input longint instret);
 
-// // Supervisor Mode
-// reg [63:0] satp;       // Supervisor Address Translation and Protection Register
+// PMP Configuration and Address Registers
+import "DPI-C" function void get_pmp_cfg_csr    (input longint pmpcfg0, input longint pmpcfg1, input longint pmpcfg2, input longint pmpcfg3);
+import "DPI-C" function void get_pmp_addr1_csr  (input longint pmpaddr0, input longint pmpaddr1, input longint pmpaddr2, input longint pmpaddr3);
+import "DPI-C" function void get_pmp_addr2_csr  (input longint pmpaddr4, input longint pmpaddr5, input longint pmpaddr6, input longint pmpaddr7);
+import "DPI-C" function void get_pmp_addr3_csr  (input longint pmpaddr8, input longint pmpaddr9, input longint pmpaddr10, input longint pmpaddr11);
+import "DPI-C" function void get_pmp_addr4_csr  (input longint pmpaddr12, input longint pmpaddr13, input longint pmpaddr14, input longint pmpaddr15);
 
-// // Debug Registers
-// reg [63:0] tselect;    // Debug Trigger Select Register
-// reg [63:0] tdata1;     // Debug Trigger Data Register 1
+//---------------------------------reg--------------------------------------------
+//machine information reg
+reg [63:0] mvendorid, marchid, mimpid, mhartid, mconfigptr, misa;
+//machine trap setup and handing
+reg [63:0] mstatus, medeleg, mideleg, mie, mtvec, mcounteren;
+reg [63:0] mscratch, mepc, mcause, mtval, mip;
+reg [63:0] mcycle, minstret;
 
-// //--------------------------------------------------------------------------
-// // 2. Machine Information Registers (Read-Only Constants)
-// //--------------------------------------------------------------------------
-// wire [63:0] mvendorid; // Machine Vendor ID Register
-// wire [63:0] marchid;   // Machine Architecture ID Register
-// wire [63:0] mimpid;    // Machine Implementation ID Register
-// wire [63:0] mhartid;   // Machine Hart ID Register (Hardware Thread ID)
-// wire [63:0] mconfigptr;// Machine Configuration Pointer Register
-// wire [63:0] misa;      // Machine ISA Register (Instruction Set Architecture)
+//s mode
+reg [63:0] satp;
+reg [63:0] sstatus, sie, stvec, scounteren;
+reg [63:0] sscratch, sepc, scause, stval, sip;
 
+//user mode
+reg [63:0] cycle, time, instret
+//pmp
+reg [63:0] pmpcfg0,     pmpcfg1,    pmpcfg2,    pmpcfg3;
+reg [63:0] pmpaddr0,    pmpaddr1,   pmpaddr2,   pmpaddr3;
+reg [63:0] pmpaddr4,    pmpaddr5,   pmpaddr6,   pmpaddr7;
+reg [63:0] pmpaddr8,    pmpaddr9,   pmpaddr10,  pmpaddr11;
+reg [63:0] pmpaddr12,   pmpaddr13,  pmpaddr14,  pmpaddr15; 
 
+//---------------------------------reg----------------------------------------------
 
 // //instruction
 // wire excption_instruction_address_misaligned  = xx; //id=0
@@ -109,29 +115,5 @@
 //     end
 // end
 
-
-
-// 2. 操作系统要做的事情
-// 不归我管
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// endmodule
-
-module csr(
-    input wire clk,
-    input wire rst
-);
 
 endmodule

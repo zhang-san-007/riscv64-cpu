@@ -73,15 +73,11 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
   Log("Difftest已打开");
 }
 
-
-
-
-
 static void display_diff_error(CPU_state *ref, u64 pc, u64 next_pc, const char *msg) {
-    // 1. 打印指令轨迹（最近20条）
-
     printf("\n%-9s\n", ANSI_FMT("DIFFTEST ERROR", ANSI_FG_YELLOW ANSI_BG_RED));         
-    printf("[NPC] 执行完pc=[0x%016lx]这条指令后出错, 错误原因: %s\n", pc, msg);
+    instr_coverage_display();
+    
+    printf("[NPC] 执行完pc=[0x%016lx]处的指令后出错。错误原因: %s\n", pc, msg);
     printf("[NPC] PC 状态: [参考 REF.pc]=0x%016lx, [你的 DUT.pc]=0x%016lx\n", ref->pc, next_pc);
     instr_itrace_display();
 
@@ -117,25 +113,22 @@ static void checkregs(CPU_state *ref, u64 pc, u64 next_pc) {
     }
 }
 
-
-
 #include <stdint.h>
 #include <assert.h>
 
-// 辅助宏：提取指令字段
 #define GET_OPCODE(i) ((i) & 0x7f)
 #define GET_FUNCT3(i) (((i) >> 12) & 0x7)
 #define GET_RD(i)     (((i) >> 7) & 0x1f)
 
 void difftest_step(commit_t *commit) {
     CPU_state ref_r;
-    // 1. 同步执行：让 Spike 走一步，并同步寄存器
     ref_difftest_exec(1);
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
 
     uint32_t instr = commit->instr;
     uint32_t opcode = instr & 0x7f;
     uint32_t funct3 = (instr >> 12) & 0x7;
+    
 
     if (opcode == 0x03) {
         int rd = GET_RD(instr);
@@ -185,8 +178,6 @@ void difftest_step(commit_t *commit) {
         }
     }
 
-    // --- 逻辑 C: 寄存器与 PC 的常规比对 ---
-    // 这涵盖了所有算术指令以及 Load 指令的最终写回结果
     checkregs(&ref_r, commit->pc, commit->next_pc);
 }
 
@@ -194,8 +185,3 @@ void difftest_step(commit_t *commit) {
 #else
 void init_difftest(char *ref_so_file, long img_size, int port) { }
 #endif
-
-
-
-
-
