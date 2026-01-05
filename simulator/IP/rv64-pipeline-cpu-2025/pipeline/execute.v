@@ -18,8 +18,9 @@ module execute(
 //output
     output wire [160:0] execute_o_commit_info,
     output wire [63:0]  execute_o_alu_result,
-    output wire         execute_o_need_jump,
-    output wire [63:0]  execute_o_jump_pc
+
+    output wire         execute_o_branch_need_jump,
+    output wire [63:0]  execute_o_branch_next_pc
 );
 
 wire op_csrrw       = regE_i_opcode_info[12];
@@ -184,7 +185,7 @@ wire inst_blt   = regE_i_branch_info[3];
 wire inst_bge   = regE_i_branch_info[2];
 wire inst_bltu  = regE_i_branch_info[1];
 wire inst_bgeu  = regE_i_branch_info[0];
-assign execute_o_need_jump = (inst_beq  && ($signed  (regE_i_regdata1) == $signed  (regE_i_regdata2)))  ? 1'b1:
+assign execute_o_branch_need_jump = (inst_beq  && ($signed  (regE_i_regdata1) == $signed  (regE_i_regdata2)))  ? 1'b1:
 							 (inst_bne  && ($signed  (regE_i_regdata1) != $signed  (regE_i_regdata2)))  ? 1'b1:
 							 (inst_blt  && ($signed  (regE_i_regdata1) <  $signed  (regE_i_regdata2)))  ? 1'b1:
 							 (inst_bge  && ($signed  (regE_i_regdata1) >= $signed  (regE_i_regdata2)))  ? 1'b1:
@@ -193,12 +194,12 @@ assign execute_o_need_jump = (inst_beq  && ($signed  (regE_i_regdata1) == $signe
 							 (op_jal | op_jalr)                                                         ? 1'b1: 1'b0;
 
 wire [63:0] tmp = op_jalr ?  (execute_o_alu_result & ~1) : 64'd0;
-assign  execute_o_jump_pc   = op_jalr               ? (execute_o_alu_result & ~1)           : 
-                              op_jal                ?  execute_o_alu_result                 : 
-                              execute_o_need_jump   ?  execute_o_alu_result                 : 64'd0;
+assign  execute_o_next_pc   = op_jalr                      ? (execute_o_alu_result & ~1)           : 
+                              op_jal                       ?  execute_o_alu_result                 : 
+                              execute_o_branch_need_jump   ?  execute_o_alu_result                 : 64'd0;
 
 
-assign execute_o_commit_info = execute_o_need_jump ? {regE_i_commit_info[160], regE_i_commit_info[159:128], execute_o_jump_pc, regE_i_commit_info[63:0]} : regE_i_commit_info;
+assign execute_o_commit_info = execute_o_branch_need_jump ? {regE_i_commit_info[160], regE_i_commit_info[159:128], execute_o_branch_next_pc, regE_i_commit_info[63:0]} : regE_i_commit_info;
 
 
 //commite_info

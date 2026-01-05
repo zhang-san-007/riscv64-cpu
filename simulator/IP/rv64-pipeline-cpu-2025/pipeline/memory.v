@@ -4,10 +4,9 @@ module memory(
     input wire  [10:0]   regM_i_load_store_info,
     input wire  [63:0]   regM_i_alu_result,
     input wire  [63:0]   regM_i_regdata2,
-    output wire [63:0]   memory_o_memdata
+    output wire [63:0]   memory_o_mem_rdata
 );
 
-//写入的数据信息mem_wdata
 
 import "DPI-C" function void    dpi_mem_write(input longint addr, input longint data, int len);
 import "DPI-C" function longint dpi_mem_read (input longint addr, input int len);
@@ -40,13 +39,13 @@ always @(*) begin
         mem_rdata = 64'd0;
     end
 end
-assign memory_o_memdata  = (inst_lb)  ?     { {56{mem_rdata[7]}},    mem_rdata[7 :0]}   :
-                           (inst_lh)  ?     { {48{mem_rdata[15]}},   mem_rdata[15:0]}   :  
-                           (inst_lw)  ?     { {32{mem_rdata[31]}},   mem_rdata[31:0]}   :
-                           (inst_ld)  ?     {                        mem_rdata[63:0]}   :
-                           (inst_lbu) ?     { 56'd0,                 mem_rdata[7 :0]}   :
-                           (inst_lhu) ?     { 48'd0,                 mem_rdata[15:0]}   :
-                           (inst_lwu) ?     { 32'd0,                 mem_rdata[31:0]}   : 64'd0;
+assign memory_o_mem_rdata  = (inst_lb)  ?     { {56{mem_rdata[7]}},    mem_rdata[7 :0]}   :
+                             (inst_lh)  ?     { {48{mem_rdata[15]}},   mem_rdata[15:0]}   :  
+                             (inst_lw)  ?     { {32{mem_rdata[31]}},   mem_rdata[31:0]}   :
+                             (inst_ld)  ?     {                        mem_rdata[63:0]}   :
+                             (inst_lbu) ?     { 56'd0,                 mem_rdata[7 :0]}   :
+                             (inst_lhu) ?     { 48'd0,                 mem_rdata[15:0]}   :
+                             (inst_lwu) ?     { 32'd0,                 mem_rdata[31:0]}   : 64'd0;
 
 //要写入的数据
 always @(posedge clk) begin

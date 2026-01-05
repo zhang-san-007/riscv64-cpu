@@ -12,10 +12,11 @@ module regE(
     //info
     input wire   [27:0] decode_i_alu_info,          // ALU操作信息
     input wire   [10:0] decode_i_load_store_info,   // 访存操作信息
-    input wire   [11:0] decode_i_opcode_info,       // 操作码信息
+    input wire   [12:0] decode_i_opcode_info,       // 操作码信息
     input wire   [5:0]  decode_i_branch_info,       // 分支信息
     input wire   [5:0]  decode_i_csrrw_info,
     input wire   [6:0]  decode_i_system_info,
+
     //reg
     input wire  [4:0]  decode_i_rd,            
     input wire         decode_i_reg_wen,       
@@ -38,7 +39,7 @@ module regE(
 
     output reg  [27:0] regE_o_alu_info,        
     output reg  [10:0] regE_o_load_store_info, 
-    output reg  [11:0] regE_o_opcode_info,     
+    output reg  [12:0] regE_o_opcode_info,     
     output reg  [5:0]  regE_o_branch_info,     
     output reg  [5:0]  regE_o_csrrw_info,
     output reg  [6:0]  regE_o_system_info,
@@ -46,7 +47,7 @@ module regE(
     //csr
     output reg  [11:0] regE_o_csr_id,
     output reg  [63:0] regE_o_csr_rdata,
-    output reg         regE_o_csr_
+    output reg         regE_o_csr_wen,
 
     output reg  [160:0] regE_o_commit_info
 );

@@ -6,20 +6,20 @@ module decode(
 
 	//execute阶段数据前递
 	input wire [63:0]	execute_i_alu_result,
-	input wire [4:0] 	regE_i_rd,
+	input wire [4:0] 	regE_i_reg_rd,
 	input wire 			regE_i_reg_wen,
 
 	input wire [11:0] 	regM_i_opcode_info,
 	input wire [63:0] 	regM_i_alu_result,
-	input wire [63:0]	memory_i_memdata,
-	input wire  [4:0]	regM_i_rd,
+	input wire [63:0]	memory_i_mem_rdata,
+	input wire  [4:0]	regM_i_reg_rd,
 	input wire 			regM_i_reg_wen,
 
 	input wire [11:0]	regW_i_opcode_info,
 	input wire [63:0]	regW_i_pc,
 	input wire [63:0]   regW_i_alu_result,
-	input wire [63:0]	regW_i_memdata,
-	input wire  [4:0]	regW_i_rd,
+	input wire [63:0]	regW_i_mem_rdata,
+	input wire  [4:0]	regW_i_reg_rd,
 	input wire  		regW_i_reg_wen,
 
 	//wb_reg
@@ -43,19 +43,16 @@ module decode(
 
 
 	//译码得出来的数据信息
-	output wire [4:0]	decode_o_rs1,
-	output wire [4:0]   decode_o_rs2,
     output wire [63:0]  decode_o_regdata1,   
     output wire [63:0]  decode_o_regdata2,   
 	output wire [63:0]  decode_o_imm,
+	output wire [63:0]	decode_o_csr_rdata,
 	
 	//csr
 	output wire [63:0]  decode_o_csr_id,
-	output wire [63:0]	decode_o_csr_rdata,
 	output wire 		decode_o_csr_wen,
-
 	//要写回的数据
-	output wire [4:0]	decode_o_rd,
+	output wire [4:0]	decode_o_reg_rd,
 	output wire 	   	decode_o_reg_wen
 );
 
@@ -358,6 +355,7 @@ assign decode_o_regdata2 = regE_i_rd != 5'd0 && regE_i_reg_wen && regE_i_rd == r
 csrfile u_csrfile(
 	.clk               	( clk                ),
 	.rst               	( rst                ),
+	
 	.decode_i_regdata1 	( decode_i_regdata1  ),
 	.decode_i_csr_id  	( decode_i_csr_id   ),
 	.csr_o_csr_rdata   	( decode_o_csr_rdata  )

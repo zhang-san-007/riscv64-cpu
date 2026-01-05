@@ -5,9 +5,9 @@ module regfile(
     input   wire            rst,
 
     //写回的数据
-    input   wire [4:0]      write_back_i_rd,
-    input   wire [63:0]     write_back_i_data,
-    input   wire            write_back_i_reg_wen,
+    input   wire [4:0]      wb_i_reg_rd,
+    input   wire [63:0]     wb_i_reg_wdata,
+    input   wire            wb_i_reg_wen,
 
     //译码来的数据
     input   wire [4 :0]     decode_i_rs1,        

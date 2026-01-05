@@ -3,30 +3,37 @@ module regW(
     input wire        rst,                    // 复位信号
     input wire        regW_bubble,            // 气泡信号，用于清空当前阶段
     input wire        regW_stall,             // 停滞信号，用于暂停当前阶段的更新
-
-    input wire  [160:0]     regM_i_commit_info,
-    input wire  [4:0]       regM_i_rd,
-    input wire   [63:0]     regM_i_pc,
-    input wire              regM_i_reg_wen,
-    input wire [63:0]       memory_i_memdata,
+    //info
     input wire [11:0]       regM_i_opcode_info,
+    //data
+    input wire  [63:0]      regM_i_pc,
+    input wire [63:0]       memory_i_memdata,
     input wire [63:0]       regM_i_alu_result,
     input wire [63:0]       regM_i_regdata2,
-    input wire  [11:0]      regM_i_csrid,
-    input wire  [63:0]      regM_i_csrdata,
-
-
-    output reg  [4:0]       regW_o_rd,
-    output reg              regW_o_reg_wen,
-    output reg  [63:0]      regW_o_memdata,
+    //reg
+    input wire              regM_i_reg_wen,
+    input wire  [4:0]       regM_i_reg_rd,
+    //csr
+    input wire  [11:0]      regM_i_csr_id,
+    input wire  [63:0]      regM_i_csr_rdata,
+    //commit
+    input wire  [160:0]     regM_i_commit_info,
+//-------------output---------------------
+    //info
     output reg  [11:0]      regW_o_opcode_info,
+    //data
+    output reg  [63:0]      regW_o_memdata,
     output reg  [63:0]      regW_o_alu_result,
     output reg  [63:0]      regW_o_pc,
-    output reg  [160:0]     regW_o_commit_info,
+    //reg
+    output reg  [4:0]       regW_o_rd,
+    output reg              regW_o_reg_wen,
     //csr
     output reg  [11:0]      regW_o_csrid,
     output reg  [63:0]      regW_o_csrdata,
-    output reg  [63:0]      regW_o_regdata2
+    output reg  [63:0]      regW_o_regdata2,
+    //commit
+    output reg  [160:0]     regW_o_commit_info
 );
 
     always @(posedge clk) begin

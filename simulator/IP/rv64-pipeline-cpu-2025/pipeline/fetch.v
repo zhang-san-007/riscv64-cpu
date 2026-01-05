@@ -2,21 +2,17 @@ module fetch(
     input wire clk,
     input wire rst,
     input  wire  [63:0]    pc,
-    output reg   [63:0]    fetch_o_pc,
-    output wire  [31:0]  fetch_o_instr,
-    output wire  [63:0]  fetch_o_next_pc,
-    output wire  [160:0] fetch_o_commit_info
+    output wire  [31:0]    fetch_o_instr,
+    output wire  [63:0]    fetch_o_next_pc,
+    output wire  [160:0]   fetch_o_commit_info
 );
 
 import "DPI-C" function int dpi_instr_mem_read (input longint addr);
 
-//取指令
+
 assign fetch_o_pc           =  pc;
 assign fetch_o_instr        =  dpi_instr_mem_read(pc);
-//静态分支预测
 assign fetch_o_next_pc       =  fetch_o_pc + 64'd4; //这个是预测的下一条PC
-
-//commit_info
 assign fetch_o_commit_info  = {1'b1, fetch_o_instr, fetch_o_next_pc, fetch_o_pc};
 
 

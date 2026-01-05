@@ -1,7 +1,12 @@
 module csrfile(
     input clk,
     input rst,
-    input  wire [63:0] decode_i_regdata1,
+    //write
+    input wire         wb_i_csr_wen,
+    input wire         wb_i_csr_id,
+    input wire         wb_i_csr_wdata,
+
+    //read
     input  wire [11:0] decode_i_csr_id,
     output wire [63:0] csr_o_csr_rdata
 ); 
@@ -68,7 +73,6 @@ end
 
 
 wire [11:0] csrid      = decode_i_csr_id;
-wire [63:0] regdata1    = decode_i_regdata1;
 
 assign csr_o_csr_rdata    = (csrid == `timer_id)         ?  timer        :
                             (csrid == `cycle_id)         ?  cycle       :
@@ -123,6 +127,11 @@ assign csr_o_csr_rdata    = (csrid == `timer_id)         ?  timer        :
                             (csrid == `pmpaddr15_id)      ?   pmpaddr15   :64'd0;
 
 //CSR的初始值
+
+wire csr_wen    = wb_i_csr_wen;
+wire csr_id     = wb_i_csr_id;
+wire csr_wdata  = wb_i_csr_wdata; 
+
 always @(posedge clk) begin
     if(rst) begin
         mhartid <= 64'd0;
@@ -134,7 +143,62 @@ always @(posedge clk) begin
         medeleg <= 64'd0;
         mideleg <= 64'd0;
     end
-    else begin
+    else if(csr_wen) begin
+        case(csr_id) 
+            `timer_id       :   begin       timer           <= csr_wdata;   end
+            `cycle_id       :   begin       cycle           <= csr_wdata;         end     
+            `instret_id     :   begin       instret         <= csr_wdata;   end
+            `mvendorid_id   :   begin       mvendor         <= csr_wdata;   end
+            `marchid_id     :   begin       marchid         <= csr_wdata;   end
+            `mimpid_id      :   begin       mimpid          <= csr_wdata;   end
+            `mhartid_id     :   begin       mhartid         <= csr_wdata;   end
+            `mconfigptr_id  :   begin       mconfigptr      <= csr_wdata;   end
+            `misa_id        :   begin       misa            <= csr_wdata;   end
+            `mstatus_id     :   begin       mstatus         <= csr_wdata;   end
+            `medeleg_id     :   begin       medeleg         <= csr_wdata;   end
+            `mie_id         :   begin       mie             <= csr_wdata;   end
+            `mtvec_id       :   begin       mtvec           <= csr_wdata;   end
+            `mcounteren_id  :   begin       mcounteren      <= csr_wdata;   end
+            `mscratch_id    :   begin       mscratch        <= csr_wdata;   end
+            `mepc_id        :   begin       mepc            <= csr_wdata;   end
+            `mcause_id      :   begin       mcause          <= csr_wdata;   end
+            `mtval_id       :   begin       mtval           <= csr_wdata;   end
+            `mip_id         :   begin       mip             <= csr_wdata;   end
+            `mcycle_id      :   begin       mcycle          <= csr_wdata;   end
+            `minstret_id    :   begin       minstret        <= csr_wdata;   end
+            `satp_id        :   begin       satp            <= csr_wdata;   end
+            `sie_id         :   begin       sie             <= csr_wdata;   end
+            `stvec_id       :   begin       stvec           <= csr_wdata;   end
+            `scounteren_id  :   begin       scounteren      <= csr_wdata;   end
+            `sscratch_id    :   begin       sscratch        <= csr_wdata;   end
+            `sepc_id        :   begin       sepc            <= csr_wdata;   end
+            `scause_id      :   begin       scause          <= csr_wdata;   end
+            `stval_id       :   begin       stval           <= csr_wdata;   end
+            `sip_id         :   begin       sip             <= csr_wdata;   end
+            `pmpcfg0_id     :   begin       pmpcfg0         <= csr_wdata;   end
+            `pmpcfg1_id     :   begin       pmpcfg1         <= csr_wdata;   end
+            `pmpcfg2_id     :   begin       pmpcfg2         <= csr_wdata;   end
+            `pmpcfg3_id     :   begin       pmpcfg3         <= csr_wdata;   end
+            `pmpaddr0_id    :   begin       pmpaddr0        <= csr_wdata;   end
+            `pmpaddr1_id    :   begin       pmpaddr1        <= csr_wdata;   end
+            `pmpaddr2_id    :   begin       pmpaddr2        <= csr_wdata;   end
+            `pmpaddr3_id    :   begin       pmpaddr3        <= csr_wdata;   end
+            `pmpaddr4_id    :   begin       pmpaddr4        <= csr_wdata;   end
+            `pmpaddr5_id    :   begin       pmpaddr5        <= csr_wdata;   end
+            `pmpaddr6_id    :   begin       pmpaddr6        <= csr_wdata;   end
+            `pmpaddr7_id    :   begin       pmpaddr7        <= csr_wdata;   end
+            `pmpaddr8_id    :   begin       pmpaddr8        <= csr_wdata;   end
+            `pmpaddr9_id    :   begin       pmpaddr9        <= csr_wdata;   end
+            `pmpaddr10_id   :   begin       pmpaddr10       <= csr_wdata;   end
+            `pmpaddr11_id   :   begin       pmpaddr11       <= csr_wdata;   end
+            `pmpaddr12_id   :   begin       pmpaddr12       <= csr_wdata;   end
+            `pmpaddr13_id   :   begin       pmpaddr13       <= csr_wdata;   end
+            `pmpaddr14_id   :   begin       pmpaddr14       <= csr_wdata;   end
+            `pmpaddr15_id   :   begin       pmpaddr15       <= csr_wdata;   end 
+            default: begin
+
+            end
+        endcase
     end
 end
                   

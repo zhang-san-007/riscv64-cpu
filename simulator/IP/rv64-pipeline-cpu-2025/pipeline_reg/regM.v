@@ -1,38 +1,52 @@
-module regM(
+module regM(    
     input wire        clk,                    // 时钟信号
     input wire        rst,                    // 复位信号
+    //
     input wire        regM_bubble,            // 气泡信号，用于清空当前阶段
     input wire        regM_stall,             // 停滞信号，用于暂停当前阶段的更新
 
-    input wire  [63:0]  regE_i_pc,            // 输入的程序计数器值
-
+//----------input---------------------------
     input wire  [10:0]  regE_i_load_store_info,
     input wire  [11:0]  regE_i_opcode_info,
+    input wire   [5:0]  regE_i_csrrw_info,
+    input wire   [6:0]  regE_i_system_info,
+
+    //data
+    input wire  [63:0]  regE_i_pc,         
     input wire  [63:0]  regE_i_regdata2,
     input wire  [63:0]  execute_i_alu_result,
 
+    //reg
     input wire  [4:0]   regE_i_rd,
     input wire          regE_i_reg_wen,
     //csr
-    input wire  [11:0]  regE_i_csrid,
-    input wire  [63:0]  regE_i_csrdata,
-
+    input wire  [11:0]  regE_i_csr_id,
+    input wire  [63:0]  regE_i_csr_rdata,
+    input wire  [63:0]  regE_i_csr_wen,
+    //commit
     input wire  [160:0] execute_i_commit_info,
 
+//-----------output-------------------------
+    //info
     output reg   [10:0] regM_o_load_store_info,
     output reg   [11:0] regM_o_opcode_info,
+    output reg   [5:0]  regM_o_csrrw_info,
+    output reg   [6:0]  regM_o_system_info,   
 
+    //data
     output reg   [63:0] regM_o_regdata2,
     output reg   [63:0] regM_o_alu_result,
+    output reg   [63:0] regM_o_pc,        
 
-    output reg  [63:0]  regM_o_pc,            // 输出的程序计数器值
-    output reg  [4:0]   regM_o_rd,
+    //reg
+    output reg  [4:0]   regM_o_reg_rd,
     output reg          regM_o_reg_wen,
+
     //csr
-    output reg  [11:0]  regM_o_csrid,
-    output reg  [63:0]  regM_o_csrdata,
-
-
+    output reg  [11:0]  regM_o_csr_id,
+    output reg  [63:0]  regM_o_csr_data,
+    output reg          regM_o_csr_wen,
+    //commit
     output reg  [160:0] regM_o_commit_info
 );
 

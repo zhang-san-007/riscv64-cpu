@@ -4,8 +4,9 @@ module pc(
     input wire regF_stall,
     input wire regF_bubble,
     
-    input wire  [63:0] execute_i_jump_pc,
-    input wire         execute_i_need_jump,
+    input wire  [63:0] execute_i_branch_next_pcpc,
+    input wire         execute_i_branch_need_jump,
+    input wire  [63:0] fetch_i_next_pc,
     output reg  [63:0] pc
 );
 
@@ -20,8 +21,7 @@ always @(posedge clk) begin
         pc <= execute_i_jump_pc;        
     end
     else begin
-        pc <= pc + 64'd4; //pre_pc
-    end
-    
+        pc <= pc + 64'd4; 
+    end    
 end
 endmodule

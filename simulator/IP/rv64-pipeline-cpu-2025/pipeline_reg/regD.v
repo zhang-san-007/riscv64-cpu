@@ -3,11 +3,13 @@ module regD(
     input wire         rst,               // 复位信号
     input wire         regD_bubble,
     input wire         regD_stall,
-    
+//------------input--------------------
+    //data
     input wire [63:0]  fetch_i_pc,
     input wire [31:0]  fetch_i_instr,
+    //commit
     input wire [160:0] fetch_i_commit_info,
-
+//------------output---------------------
     output reg [63:0]  regD_o_pc,
     output reg [31:0]  regD_o_instr,      
     output reg [160:0] regD_o_commit_info
