@@ -4,8 +4,7 @@
 #include <cpu.h>
 
 CPU_state cpu; 
-word_t *reg_ptr = NULL;
-word_t *csr_ptr = NULL;
+u64 *reg_ptr = NULL;
 
 const char *regs[] = {
   "$0", "ra", "sp",  "gp",  "tp", "t0", "t1", "t2",

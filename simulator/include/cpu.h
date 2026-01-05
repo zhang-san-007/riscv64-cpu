@@ -5,9 +5,9 @@
 #include <debug.h>
 
 typedef struct {
-  word_t  gpr[GPR_NUM];
-  vaddr_t pc;
-  word_t  csr[CSR_NUM];
+  u64 gpr[GPR_NUM];
+  u64 pc;
+  u64 csr[CSR_NUM];
 } CPU_state;
 
 

@@ -39,7 +39,7 @@ void npc_close_simulation(){
 void update_cpu_state(){
   cpu.pc = dut.cur_pc;
   memcpy(&cpu.gpr[0], reg_ptr, 8 * 32);
-//  memcpy(&cpu.csr[0], csr_ptr, 8 * 4096);
+  
 }
 void npc_single_cycle() {
   dut.clk = 0;  dut.eval();   

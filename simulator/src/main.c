@@ -10,8 +10,8 @@ static void welcome() {
   printf("Welcome to %s-npc!\n", ANSI_FMT(str(__GUEST_ISA__), ANSI_FG_YELLOW ANSI_BG_RED));
   printf("For help, type \"help\"\n");
 }
-//static const char *img_file = "/home/akun/riscv64-cpu/simulator/bin/xv6-kernel.bin";
-static char *img_file = NULL;
+static const char *img_file = "/home/akun/riscv64-cpu/simulator/bin/xv6-kernel.bin";
+//static char *img_file = NULL;
 static char *log_file = NULL;
 static char *diff_so_file = NULL;
 static int   difftest_port = 1234;

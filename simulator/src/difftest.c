@@ -111,6 +111,9 @@ static void checkregs(CPU_state *ref, u64 pc, u64 next_pc) {
             display_diff_error(ref, pc, next_pc, buf);
         }
     }
+    for (int i = 0; i < 4096; ++i){
+        //比对csr
+    }
 }
 
 #include <stdint.h>
@@ -120,17 +123,19 @@ static void checkregs(CPU_state *ref, u64 pc, u64 next_pc) {
 #define GET_FUNCT3(i) (((i) >> 12) & 0x7)
 #define GET_RD(i)     (((i) >> 7) & 0x1f)
 
+#define op_load  0b0000011
+#define op_store 0b0100011
 void difftest_step(commit_t *commit) {
     CPU_state ref_r;
     ref_difftest_exec(1);
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
 
     uint32_t instr = commit->instr;
-    uint32_t opcode = instr & 0x7f;
-    uint32_t funct3 = (instr >> 12) & 0x7;
-    
-
-    if (opcode == 0x03) {
+    uint32_t opcode = instr & 0b01111111;
+    uint32_t funct3 = (instr >> 12) & 0b111;
+        
+    //load_store特殊处理一下
+    if (opcode == op_load) {
         int rd = GET_RD(instr);
         int bytes = (1 << (funct3 & 0x3)); 
 
@@ -151,7 +156,7 @@ void difftest_step(commit_t *commit) {
         }
     }
     //store
-    if (opcode == 0x23) {
+    if (opcode == op_store) {
         int bytes = (1 << (funct3 & 0x3));
         word_t spike_mem_val = 0;
         ref_difftest_memcpy(commit->mem_addr, &spike_mem_val, bytes, DIFFTEST_TO_DUT);

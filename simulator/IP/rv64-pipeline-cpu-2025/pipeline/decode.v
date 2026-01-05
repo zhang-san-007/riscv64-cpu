@@ -39,6 +39,7 @@ module decode(
 
 	output wire [4:0]	decode_o_rs1,
 	output wire [4:0]   decode_o_rs2,
+	output wire [11:0]  decode_o_csr_id,
 
 	//要写回的数据
 	output wire [4:0]	decode_o_rd,
@@ -46,13 +47,14 @@ module decode(
 );
 
 
-wire [31:0] instr  = regD_i_instr;
-wire [6:0]  opcode = instr[6:0];
-wire [4:0]	rd 	   = instr[11:7];
-wire [2:0]  func3  = instr[14:12]; 
-wire [4:0]  rs1    = instr[19:15];
-wire [4:0]  rs2    = instr[24:20];
-wire [6:0]  func7  = instr[31:25];
+wire [31:0] instr   = regD_i_instr;
+wire [6:0]  opcode  = instr[6:0];
+wire [4:0]	rd 	    = instr[11:7];
+wire [2:0]  func3   = instr[14:12]; 
+wire [4:0]  rs1     = instr[19:15];
+wire [4:0]  rs2     = instr[24:20];
+wire [6:0]  func7   = instr[31:25];
+wire [11:0] csr_id = instr[31:20];
 
 
 //====================================func3=======func7===imm=====================================
@@ -69,19 +71,18 @@ wire func7_0100000              = (func7 == 7'b0100000);
 wire func7_0000001				= (func7 == 7'b0000001);
 
 
-
-wire inst_lui            	= (opcode == 7'b01_101_11); 
-wire inst_auipc				= (opcode == 7'b00_101_11); 
-wire inst_jal				= (opcode == 7'b11_011_11);
-wire inst_jalr				= (opcode == 7'b11_001_11); 
-wire inst_alu_reg			= (opcode == 7'b01_100_11);
-wire inst_alu_regw			= (opcode == 7'b01_110_11);
-wire inst_alu_imm			= (opcode == 7'b00_100_11); 
-wire inst_alu_immw			= (opcode == 7'b00_110_11); 
-wire inst_load				= (opcode == 7'b00_000_11); 
-wire inst_store 			= (opcode == 7'b01_000_11); 
-wire inst_branch		    = (opcode == 7'b11_000_11);
-wire inst_system			= (opcode == 7'b11_100_11); 
+wire inst_lui            	= (opcode == 7'b01101_11); 
+wire inst_auipc				= (opcode == 7'b00101_11); 
+wire inst_jal				= (opcode == 7'b11011_11);
+wire inst_jalr				= (opcode == 7'b11001_11); 
+wire inst_alu_reg			= (opcode == 7'b01100_11);
+wire inst_alu_regw			= (opcode == 7'b01110_11);
+wire inst_alu_imm			= (opcode == 7'b00100_11); 
+wire inst_alu_immw			= (opcode == 7'b00110_11); 
+wire inst_load				= (opcode == 7'b00000_11); 
+wire inst_store 			= (opcode == 7'b01000_11); 
+wire inst_branch		    = (opcode == 7'b11000_11);
+wire inst_system			= (opcode == 7'b11100_11); 
 
 //异常处理
 wire inst_valid = inst_lui      | inst_auipc    | inst_jal      | 
@@ -171,6 +172,19 @@ wire inst_bge				= (inst_branch & func3_101);
 wire inst_bltu				= (inst_branch & func3_110);
 wire inst_bgeu				= (inst_branch & func3_111);
 
+//system
+wire inst_csrrw  			= (inst_system & func3_001);
+wire inst_csrrs             = (inst_system & func3_010);
+wire inst_csrrc 			= (inst_system & func3_011);
+wire inst_csrrwi			= (inst_system & func3_101);
+wire inst_csrrsi            = (inst_system & func3_110);
+wire inst_csrrci            = (inst_system & func3_111);
+wire inst_ebreak            = (instr = 32'b00000_00_00001_00000_000_00000_11100_11);
+wire inst_uret				= (instr = 32'b00000_00_00010_00000_000_00000_11100_11);
+wire inst_sret				= (instr = 32'b00010_00_00010_00000_000_00000_11100_11);
+wire inst_mret				= (instr = 32'b00110_00_00010_00000_000_00000_11100_11);
+wire inst_wfi			    = (instr = 32'b00010_00_00101_00000_000_00000_11100_11);
+wire inst_sfence_vma		= (inst_system & (instr[31:27] == 5'b00010) & (instr[14:12] == 3'b000));
 
 //------------------------------------译码结束-------------------------------------------
 assign decode_o_opcode_info = {
@@ -264,10 +278,10 @@ assign decode_o_imm = 	inst_i_type ? inst_i_imm :
 assign decode_o_rd  		=  rd;
 assign decode_o_rs1 		=  rs1; 
 assign decode_o_rs2 		=  rs2;
+assign decode_o_csr_id		=  csr_id;
+
 
 assign decode_o_reg_wen = inst_i_type | inst_u_type | inst_r_type | inst_j_type;
-
-
 
 wire [63:0] regfile_o_regdata1;
 wire [63:0] regfile_o_regdata2;
