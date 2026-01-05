@@ -12,6 +12,9 @@ module regW(
     input wire [11:0]       regM_i_opcode_info,
     input wire [63:0]       regM_i_alu_result,
     input wire [63:0]       regM_i_regdata2,
+    input wire  [11:0]      regM_i_csrid,
+    input wire  [63:0]      regM_i_csrdata,
+
 
     output reg  [4:0]       regW_o_rd,
     output reg              regW_o_reg_wen,
@@ -20,6 +23,9 @@ module regW(
     output reg  [63:0]      regW_o_alu_result,
     output reg  [63:0]      regW_o_pc,
     output reg  [160:0]     regW_o_commit_info,
+    //csr
+    output reg  [11:0]      regW_o_csrid,
+    output reg  [63:0]      regW_o_csrdata,
     output reg  [63:0]      regW_o_regdata2
 );
 
@@ -33,6 +39,8 @@ module regW(
             regW_o_commit_info  <= 161'd0;        // 清零commit_info
             regW_o_pc           <= 64'd0;         // 清零pc
             regW_o_regdata2     <= 64'd0;
+            regW_o_csrid        <= 12'd0;
+            regW_o_csrdata      <= 64'd0;
         end 
         else if (regW_stall) begin
             // 如果存在停滞信号，则保持当前值不变
@@ -45,6 +53,8 @@ module regW(
             regW_o_alu_result   <= regM_i_alu_result;   // 更新alu_result
             regW_o_commit_info  <= regM_i_commit_info;  // 更新commit_info
             regW_o_pc           <= regM_i_pc;           // 更新pc
+            regW_o_csrid        <=  regM_i_csrid;
+            regW_o_csrdata      <=  regM_i_csrdata;
             regW_o_regdata2     <= regM_i_regdata2;    
         end
     end

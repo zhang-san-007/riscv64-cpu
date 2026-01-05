@@ -5,19 +5,24 @@ module execute(
     input wire  [5:0]   regE_i_branch_info,
     input wire  [10:0]  regE_i_load_store_info,
     input wire  [27:0]  regE_i_alu_info,
+    input wire  [5:0]   regE_i_csrrw_info,
+    input wire  [6:0]   regE_i_system_info,
 
     //data
     input wire  [63:0]  regE_i_regdata1,
     input wire  [63:0]  regE_i_regdata2,
     input wire  [63:0]  regE_i_imm,
     input wire  [63:0]  regE_i_pc,
+    input wire  [63:0]  regE_i_csr_rdata,
 
+//output
     output wire [160:0] execute_o_commit_info,
     output wire [63:0]  execute_o_alu_result,
     output wire         execute_o_need_jump,
     output wire [63:0]  execute_o_jump_pc
 );
 
+wire op_csrrw       = regE_i_opcode_info[12];
 wire op_lui         = regE_i_opcode_info[11];
 wire op_auipc       = regE_i_opcode_info[10];
 wire op_jal         = regE_i_opcode_info[9];
@@ -64,6 +69,15 @@ wire alu_sll        =  regE_i_alu_info[25];
 wire alu_sub        =  regE_i_alu_info[26];
 wire alu_add        =  regE_i_alu_info[27];
 
+
+wire inst_csrrw     = regE_i_csrrw_info[5];
+wire inst_csrrs     = regE_i_csrrw_info[4];
+wire inst_csrrc     = regE_i_csrrw_info[3];
+wire inst_csrrwi    = regE_i_csrrw_info[2];
+wire inst_csrrsi    = regE_i_csrrw_info[1];
+wire inst_csrrci    = regE_i_csrrw_info[0];
+
+
 wire [63:0] alu_src1 = op_alu_reg | op_alu_regw ? regE_i_regdata1    : 
                        op_alu_imm | op_alu_immw ? regE_i_regdata1    : 
                        op_branch                ? regE_i_pc          : 
@@ -72,7 +86,8 @@ wire [63:0] alu_src1 = op_alu_reg | op_alu_regw ? regE_i_regdata1    :
                        op_jal                   ? regE_i_pc          : 
                        op_jalr                  ? regE_i_regdata1    : 
                        op_lui                   ? 64'd0              : 
-                       op_auipc                 ? regE_i_pc          : 64'd0;
+                       op_auipc                 ? regE_i_pc          : 
+                       op_csrrw                 ? regE_i_regdata1    : 64'd0;
 
 wire [63:0] alu_src2 = op_alu_reg | op_alu_regw  ? regE_i_regdata2   : 
                        op_alu_imm | op_alu_immw  ? regE_i_imm        : 
@@ -82,7 +97,8 @@ wire [63:0] alu_src2 = op_alu_reg | op_alu_regw  ? regE_i_regdata2   :
                        op_jal                    ? regE_i_imm        : 
                        op_jalr                   ? regE_i_imm        : 
                        op_lui                    ? regE_i_imm        : 
-                       op_auipc                  ? regE_i_imm        : 64'd0;
+                       op_auipc                  ? regE_i_imm        : 
+                       op_csrrw                  ? regE_i_csr_rdata  : 64'd0;
 
 wire [63:0]   signed_alu_src1 = $signed(alu_src1);
 wire [63:0]   signed_alu_src2 = $signed(alu_src2);
@@ -152,8 +168,16 @@ assign execute_o_alu_result = op_lui    ?   {alu_src1  +  alu_src2    }         
                               alu_remu  ?   ( (alu_src2 == 64'd0) ? alu_src1 : (alu_src1 % alu_src2)) :
                               alu_remuw ?   ( (alu_src2[31:0] == 32'd0) ?  {{32{alu_src1[31]}}, alu_src1[31:0]} : {{32{remuw_result[31]}}, remuw_result} ) : 
                               alu_remw ?    ( (alu_src2[31:0] == 32'd0) ?  {{32{alu_src1[31]}}, alu_src1[31:0]} : 
-                                              (alu_src1[31:0] == 32'h8000_0000 && alu_src2[31:0] == 32'hffff_ffff) ? 64'd0 : {{32{remw_result[31]}}, remw_result} ) : 64'd0;
+                                              (alu_src1[31:0] == 32'h8000_0000 && alu_src2[31:0] == 32'hffff_ffff) ? 64'd0 : {{32{remw_result[31]}}, remw_result} ) : 
+                              inst_csrrw    ? (alu_src1 ) :
+                              inst_csrrs    ? (alu_src2 |   alu_src1 )  :
+                              inst_csrrc    ? (alu_src2 & (~alu_src1))  :
+                              inst_csrrwi   ? (alu_src1              )  :
+                              inst_csrrsi   ? (alu_src2 |   alu_src1 )  :
+                              inst_csrrci   ? (alu_src2 & (~alu_src1))  : 64'd0;
 
+
+//branch
 wire inst_beq   = regE_i_branch_info[5];
 wire inst_bne   = regE_i_branch_info[4];
 wire inst_blt   = regE_i_branch_info[3];

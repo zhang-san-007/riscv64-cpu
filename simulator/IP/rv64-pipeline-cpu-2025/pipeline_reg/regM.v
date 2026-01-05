@@ -13,6 +13,10 @@ module regM(
 
     input wire  [4:0]   regE_i_rd,
     input wire          regE_i_reg_wen,
+    //csr
+    input wire  [11:0]  regE_i_csrid,
+    input wire  [63:0]  regE_i_csrdata,
+
     input wire  [160:0] execute_i_commit_info,
 
     output reg   [10:0] regM_o_load_store_info,
@@ -24,6 +28,11 @@ module regM(
     output reg  [63:0]  regM_o_pc,            // 输出的程序计数器值
     output reg  [4:0]   regM_o_rd,
     output reg          regM_o_reg_wen,
+    //csr
+    output reg  [11:0]  regM_o_csrid,
+    output reg  [63:0]  regM_o_csrdata,
+
+
     output reg  [160:0] regM_o_commit_info
 );
 
@@ -37,6 +46,8 @@ module regM(
             regM_o_rd               <= 5'd0;
             regM_o_reg_wen          <= 1'b0;
             regM_o_pc               <= 64'd0;  // 清零程序计数器
+            regM_o_csrid            <= 12'd0;
+            regM_o_csrdata          <= 64'd0;
             regM_o_commit_info      <= 161'd0;
         end else if (regM_stall) begin
             // 在停滞信号时，保持当前值不变
@@ -51,6 +62,9 @@ module regM(
             regM_o_reg_wen          <= regE_i_reg_wen;
             regM_o_commit_info      <= execute_i_commit_info;
             regM_o_pc               <= regE_i_pc;  // 更新程序计数器
+            //csr
+            regM_o_csrid            <= regE_i_csrid;
+            regM_o_csrdata          <= regE_i_csrdata;
         end
     end
 

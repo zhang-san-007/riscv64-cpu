@@ -75,7 +75,7 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
 
 static void display_diff_error(CPU_state *ref, u64 pc, u64 next_pc, const char *msg) {
     printf("\n%-9s\n", ANSI_FMT("DIFFTEST ERROR", ANSI_FG_YELLOW ANSI_BG_RED));         
-    instr_coverage_display();
+//    instr_coverage_display();
     
     printf("[NPC] 执行完pc=[0x%016lx]处的指令后出错。错误原因: %s\n", pc, msg);
     printf("[NPC] PC 状态: [参考 REF.pc]=0x%016lx, [你的 DUT.pc]=0x%016lx\n", ref->pc, next_pc);
@@ -93,7 +93,7 @@ static void display_diff_error(CPU_state *ref, u64 pc, u64 next_pc, const char *
     // 3. 退出模拟
     npc_single_cycle();
     npc_close_simulation();
-    printf("\n[NPC] Difftest 终止，请检查上述差异。\n");
+    Log("[NPC] Difftest 终止，请检查上述差异。\n");
     exit(1);
 }
 
@@ -112,7 +112,9 @@ static void checkregs(CPU_state *ref, u64 pc, u64 next_pc) {
         }
     }
     for (int i = 0; i < 4096; ++i){
-        //比对csr
+        if(ref->csr[i] != cpu.csr[i]){
+            printf("dududu------csr error\n");            
+        }
     }
 }
 

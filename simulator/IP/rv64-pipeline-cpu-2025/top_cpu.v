@@ -15,14 +15,7 @@ module CPU(
 );
 
 
-
-csr u_csr(
-    .clk(clk),
-    .rst(rst)
-);
-// output declaration of module pc
 wire [63:0] pc;
-
 pc u_pc(
     .clk                 	(clk                   ),
     .rst                 	(rst                   ),
@@ -84,6 +77,9 @@ wire decode_o_reg_wen;
 wire [4:0] decode_o_rs1;
 wire [4:0] decode_o_rs2;
 
+wire [11:0] decode_o_csrid;
+wire [63:0] decode_o_csrdata;
+
 decode u_decode(
     .clk                      	(clk                       ),
     .rst                      	(rst                       ),
@@ -91,36 +87,40 @@ decode u_decode(
     .execute_i_alu_result     	(execute_o_alu_result      ),
     .regE_i_rd                	(regE_o_rd                 ),
     .regE_i_reg_wen           	(regE_o_reg_wen            ),
-
-    .regM_i_opcode_info         (regM_o_opcode_info),
+    .regM_i_opcode_info         (regM_o_opcode_info        ),
     .regM_i_alu_result        	(regM_o_alu_result         ),
     .regM_i_rd                	(regM_o_rd                 ),    
     .regM_i_reg_wen           	(regM_o_reg_wen            ),
-    .memory_i_memdata           (memory_o_memdata),
-
-    .regW_i_pc                  (regW_o_pc),
-    .regW_i_opcode_info         (regW_o_opcode_info),
-    .regW_i_alu_result          (regW_o_alu_result),
-    .regW_i_rd                  (regW_o_rd),
-    .regW_i_reg_wen             (regW_o_reg_wen),
-    .regW_i_memdata             (regW_o_memdata),
-    
+    .memory_i_memdata           (memory_o_memdata          ),
+    .regW_i_pc                  (regW_o_pc                 ),
+    .regW_i_opcode_info         (regW_o_opcode_info        ),
+    .regW_i_alu_result          (regW_o_alu_result         ),
+    .regW_i_rd                  (regW_o_rd                 ),
+    .regW_i_reg_wen             (regW_o_reg_wen            ),
+    .regW_i_memdata             (regW_o_memdata            ),
     .write_back_i_data        	(write_back_o_data         ),
     .write_back_i_rd          	(write_back_o_rd           ),
     .write_back_i_reg_wen     	(write_back_o_reg_wen      ),
-
+    //alu opcode branch load_store
     .decode_o_alu_info        	(decode_o_alu_info         ),
     .decode_o_opcode_info     	(decode_o_opcode_info      ),
     .decode_o_branch_info     	(decode_o_branch_info      ),
     .decode_o_load_store_info 	(decode_o_load_store_info  ),
+    //regdata1, regdata2, imm
     .decode_o_regdata1        	(decode_o_regdata1         ),
     .decode_o_regdata2        	(decode_o_regdata2         ),
     .decode_o_imm             	(decode_o_imm              ),
+    //rs1, rs2, rd
     .decode_o_rd              	(decode_o_rd               ),
     .decode_o_rs1               (decode_o_rs1               ),
     .decode_o_rs2               (decode_o_rs2               ),
+    //csr 
+    .decode_o_csrid             (decode_o_csrid),
+    .decode_o_csrdata           (decode_o_csrdata),
     .decode_o_reg_wen         	(decode_o_reg_wen          )
 );
+
+
 
 // output declaration of module regE
 wire [63:0] regE_o_regdata1;
@@ -133,6 +133,9 @@ wire [27:0] regE_o_alu_info;
 wire [10:0] regE_o_load_store_info;
 wire [11:0] regE_o_opcode_info;
 wire [5:0] regE_o_branch_info;
+
+wire [11:0] regE_o_csrid;
+wire [63:0] regE_o_csrdata;
 wire [160:0] regE_o_commit_info;
 
 regE u_regE(
@@ -150,6 +153,11 @@ regE u_regE(
     .decode_i_load_store_info 	(decode_o_load_store_info  ),
     .decode_i_opcode_info     	(decode_o_opcode_info      ),
     .decode_i_branch_info     	(decode_o_branch_info      ),
+
+    //csr
+    .decode_i_csrid(decode_o_csrid),
+    .decode_i_csrdata(decode_o_csrdata),
+
     .regD_i_commit_info       	(regD_o_commit_info        ),
     .regE_o_regdata1          	(regE_o_regdata1           ),
     .regE_o_regdata2          	(regE_o_regdata2           ),
@@ -161,6 +169,8 @@ regE u_regE(
     .regE_o_load_store_info   	(regE_o_load_store_info    ),
     .regE_o_opcode_info       	(regE_o_opcode_info        ),
     .regE_o_branch_info       	(regE_o_branch_info        ),
+    .regE_o_csrid(regE_o_csrid),
+    .regE_o_csrdata(regE_o_csrdata),
     .regE_o_commit_info       	(regE_o_commit_info        )
 );
 
@@ -196,6 +206,8 @@ wire [63:0] regM_o_alu_result;
 wire [63:0] regM_o_pc;
 wire [4:0] regM_o_rd;
 wire regM_o_reg_wen;
+wire [11:0] regM_o_csrid;
+wire [63:0] regM_o_csrdata;
 wire [160:0] regM_o_commit_info;
 
 regM u_regM(
@@ -211,6 +223,9 @@ regM u_regM(
     .regE_i_rd              	(regE_o_rd               ),
     .regE_i_reg_wen         	(regE_o_reg_wen          ),
     .execute_i_commit_info  	(execute_o_commit_info   ),
+    .regE_i_csrid               (regE_o_csrid),
+    .regE_i_csrdata             (regE_o_csrdata),
+
     .regM_o_load_store_info 	(regM_o_load_store_info  ),
     .regM_o_opcode_info     	(regM_o_opcode_info      ),
     .regM_o_regdata2        	(regM_o_regdata2         ),
@@ -218,7 +233,10 @@ regM u_regM(
     .regM_o_pc              	(regM_o_pc               ),
     .regM_o_rd              	(regM_o_rd               ),
     .regM_o_reg_wen         	(regM_o_reg_wen          ),
+    .regM_o_csrid               (regM_o_csrid),
+    .regM_o_csrdata             (regM_o_csrdata),
     .regM_o_commit_info     	(regM_o_commit_info      )
+
 );
 
 wire [63:0] memory_o_memdata;
@@ -242,6 +260,8 @@ wire [63:0]  regW_o_pc;
 wire [160:0] regW_o_commit_info;
 wire [63:0]  regW_o_regdata2;
 
+wire [11:0] regW_o_csrid;
+wire [63:0] regW_o_csrdata;
 regW u_regW(
     .clk                	(clk                 ),
     .rst                	(rst                 ),
@@ -255,6 +275,8 @@ regW u_regW(
     .regM_i_opcode_info 	(regM_o_opcode_info  ),
     .regM_i_alu_result  	(regM_o_alu_result   ),
     .regM_i_regdata2        (regM_o_regdata2)   ,
+    .regM_i_csrid           (regM_o_csrid),
+    .regM_i_csrdata         (regM_o_csrdata),
 
     .regW_o_rd          	(regW_o_rd           ),
     .regW_o_reg_wen     	(regW_o_reg_wen      ),
@@ -263,7 +285,9 @@ regW u_regW(
     .regW_o_alu_result  	(regW_o_alu_result   ),
     .regW_o_pc          	(regW_o_pc           ),
     .regW_o_commit_info 	(regW_o_commit_info  ),
-    .regW_o_regdata2        (regW_o_regdata2)
+    .regW_o_regdata2        (regW_o_regdata2),
+    .regW_o_csrid           (regW_o_csrid),
+    .regW_o_csrdata         (regW_o_csrdata)
 );
 // output declaration of module write_back
 wire [4:0]  write_back_o_rd;
@@ -277,6 +301,8 @@ write_back u_write_back(
     .regW_i_rd            	(regW_o_rd             ),
     .regW_i_pc              (regW_o_pc             ),
     .regW_i_reg_wen       	(regW_o_reg_wen        ),
+    .regW_i_csrid           (regW_o_csrid),
+    .regW_i_csrdata         (regW_o_csrdata),
     .write_back_o_rd      	(write_back_o_rd       ),
     .write_back_o_data    	(write_back_o_data     ),
     .write_back_o_reg_wen 	(write_back_o_reg_wen  )

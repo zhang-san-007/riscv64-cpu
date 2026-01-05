@@ -1,9 +1,9 @@
-module csr(
+module csrfile(
     input clk,
-    input rst
+    input rst,
     input  wire [63:0] decode_i_regdata1,
     input  wire [11:0] decode_i_csr_id,
-    output wire [63:0] csr_o_csrdata
+    output wire [63:0] csr_o_csr_rdata
 ); 
 
 // Machine Information Registers
@@ -67,60 +67,60 @@ always @(*) begin
 end
 
 
-wire [11:0] csr_id      = decode_i_csr_id;
+wire [11:0] csrid      = decode_i_csr_id;
 wire [63:0] regdata1    = decode_i_regdata1;
 
-assign csrrs_csr_data = (csr_id  == `timer_id)        ?   regdata1 | timer        :
-                        (csr_id  == `cycle_id)        ?   regdata1 | cycle       :
-                        (csr_id  == `instret_id)      ?   regdata1 | instret     :
-                        (csr_id == `mvendorid_id)     ?   regdata1 | mvendorid   :
-                        (csr_id == `marchid_id)       ?   regdata1 | marchid     :
-                        (csr_id == `mimpid_id)        ?   regdata1 | mimpid      :
-                        (csr_id == `mhartid_id)       ?   regdata1 | mhartid     :
-                        (csr_id == `mconfigptr_id)    ?   regdata1 | mconfigptr  :
-                        (csr_id == `misa_id)          ?   regdata1 | misa        :
-                        (csr_id == `mstatus_id)       ?   regdata1 | mstatus     :
-                        (csr_id == `medeleg_id)       ?   regdata1 | medeleg     :
-                        (csr_id == `mie_id)           ?   regdata1 | mie         :
-                        (csr_id == `mtvec_id)         ?   regdata1 | mtvec       :
-                        (csr_id == `mcounteren_id)    ?   regdata1 | mcounteren  :
-                        (csr_id == `mscratch_id)      ?   regdata1 | mscratch    :    
-                        (csr_id == `mepc_id)          ?   regdata1 | mepc        :
-                        (csr_id == `mcause_id)        ?   regdata1 | mcause      :
-                        (csr_id == `mtval_id)         ?   regdata1 | mtval       :
-                        (csr_id == `mip_id)           ?   regdata1 | mip         :
-                        (csr_id == `mcycle_id)        ?   regdata1 | mcycle      :
-                        (csr_id == `minstret_id)      ?   regdata1 | minstret    :
-                        (csr_id == `satp_id)          ?   regdata1 | satp        :
-                        (csr_id == `sstatus_id)       ?   regdata1 | sstatus     :
-                        (csr_id == `sie_id)           ?   regdata1 | sie         :
-                        (csr_id == `stvec_id)         ?   regdata1 | stvec       :
-                        (csr_id == `scounteren_id)    ?   regdata1 | scounteren  :
-                        (csr_id == `sscratch_id)      ?   regdata1 | sscratch    :
-                        (csr_id == `sepc_id)          ?   regdata1 | sepc        :
-                        (csr_id == `scause_id)        ?   regdata1 | scause      :
-                        (csr_id == `stval_id)         ?   regdata1 | stval       :
-                        (csr_id == `sip_id)           ?   regdata1 | sip         :
-                        (csr_id == `pmpcfg0_id)       ?   regdata1 | pmpcfg0     :
-                        (csr_id == `pmpcfg1_id)       ?   regdata1 | pmpcfg1     :
-                        (csr_id == `pmpcfg2_id)       ?   regdata1 | pmpcfg2     :
-                        (csr_id == `pmpcfg3_id)       ?   regdata1 | pmpcfg3     :
-                        (csr_id == `pmpadd0_id)       ?   regdata1 | pmpaddr0    :
-                        (csr_id == `pmpadd1_id)       ?   regdata1 | pmpaddr1    :
-                        (csr_id == `pmpadd2_id)       ?   regdata1 | pmpaddr2    :
-                        (csr_id == `pmpadd3_id)       ?   regdata1 | pmpaddr3    :
-                        (csr_id == `pmpadd4_id)       ?   regdata1 | pmpaddr4    :
-                        (csr_id == `pmpadd5_id)       ?   regdata1 | pmpaddr5    :
-                        (csr_id == `pmpadd6_id)       ?   regdata1 | pmpaddr6    :
-                        (csr_id == `pmpadd7_id)       ?   regdata1 | pmpaddr7    :
-                        (csr_id == `pmpadd8_id)       ?   regdata1 | pmpaddr8    :
-                        (csr_id == `pmpadd9_id)       ?   regdata1 | pmpaddr9    :
-                        (csr_id == `pmpadd10_id)      ?   regdata1 | pmpaddr10   :
-                        (csr_id == `pmpadd11_id)      ?   regdata1 | pmpaddr11   :
-                        (csr_id == `pmpadd12_id)      ?   regdata1 | pmpaddr12   :
-                        (csr_id == `pmpadd13_id)      ?   regdata1 | pmpaddr13   :
-                        (csr_id == `pmpadd14_id)      ?   regdata1 | pmpaddr14   :
-                        (csr_id == `pmpadd15_id)      ?   regdata1 | pmpaddr15   :64'd0
+assign csr_o_csr_rdata    = (csrid == `timer_id)         ?  timer        :
+                            (csrid == `cycle_id)         ?  cycle       :
+                            (csrid == `instret_id)       ?  instret     :
+                            (csrid == `mvendorid_id)     ?  mvendorid   :
+                            (csrid == `marchid_id)       ?   marchid     :
+                            (csrid == `mimpid_id)        ?   mimpid      :
+                            (csrid == `mhartid_id)       ?   mhartid     :
+                            (csrid == `mconfigptr_id)    ?   mconfigptr  :
+                            (csrid == `misa_id)          ?   misa        :
+                            (csrid == `mstatus_id)       ?   mstatus     :
+                            (csrid == `medeleg_id)       ?   medeleg     :
+                            (csrid == `mie_id)           ?   mie         :
+                            (csrid == `mtvec_id)         ?   mtvec       :
+                            (csrid == `mcounteren_id)    ?   mcounteren  :
+                            (csrid == `mscratch_id)      ?   mscratch    :    
+                            (csrid == `mepc_id)          ?   mepc        :
+                            (csrid == `mcause_id)        ?   mcause      :
+                            (csrid == `mtval_id)         ?   mtval       :
+                            (csrid == `mip_id)           ?   mip         :
+                            (csrid == `mcycle_id)        ?   mcycle      :
+                            (csrid == `minstret_id)      ?   minstret    :
+                            (csrid == `satp_id)          ?   satp        :
+                            (csrid == `sstatus_id)       ?   sstatus     :
+                            (csrid == `sie_id)           ?   sie         :
+                            (csrid == `stvec_id)         ?   stvec       :
+                            (csrid == `scounteren_id)    ?   scounteren  :
+                            (csrid == `sscratch_id)      ?   sscratch    :
+                            (csrid == `sepc_id)          ?   sepc        :
+                            (csrid == `scause_id)        ?   scause      :
+                            (csrid == `stval_id)         ?   stval       :
+                            (csrid == `sip_id)           ?   sip         :
+                            (csrid == `pmpcfg0_id)       ?   pmpcfg0     :
+                            (csrid == `pmpcfg1_id)       ?   pmpcfg1     :
+                            (csrid == `pmpcfg2_id)       ?   pmpcfg2     :
+                            (csrid == `pmpcfg3_id)       ?   pmpcfg3     :
+                            (csrid == `pmpaddr0_id)       ?   pmpaddr0    :
+                            (csrid == `pmpaddr1_id)       ?   pmpaddr1    :
+                            (csrid == `pmpaddr2_id)       ?   pmpaddr2    :
+                            (csrid == `pmpaddr3_id)       ?   pmpaddr3    :
+                            (csrid == `pmpaddr4_id)       ?   pmpaddr4    :
+                            (csrid == `pmpaddr5_id)       ?   pmpaddr5    :
+                            (csrid == `pmpaddr6_id)       ?   pmpaddr6    :
+                            (csrid == `pmpaddr7_id)       ?   pmpaddr7    :
+                            (csrid == `pmpaddr8_id)       ?   pmpaddr8    :
+                            (csrid == `pmpaddr9_id)       ?   pmpaddr9    :
+                            (csrid == `pmpaddr10_id)      ?   pmpaddr10   :
+                            (csrid == `pmpaddr11_id)      ?   pmpaddr11   :
+                            (csrid == `pmpaddr12_id)      ?   pmpaddr12   :
+                            (csrid == `pmpaddr13_id)      ?   pmpaddr13   :
+                            (csrid == `pmpaddr14_id)      ?   pmpaddr14   :
+                            (csrid == `pmpaddr15_id)      ?   pmpaddr15   :64'd0;
 
 //CSR的初始值
 always @(posedge clk) begin
@@ -133,6 +133,8 @@ always @(posedge clk) begin
         satp    <= 64'd0;
         medeleg <= 64'd0;
         mideleg <= 64'd0;
+    end
+    else begin
     end
 end
                   
