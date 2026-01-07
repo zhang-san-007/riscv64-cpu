@@ -1,12 +1,27 @@
-`define nop_instr       32'h00000013
-`define nop_rd          5'd0
-`define nop_reg_wen     1'd0
-`define nop_memdata     64'd0
-`define nop_opcode_info 
-`define nop_alu_result  64'd0
-`define nop_pc          64'd0
-`define nop_regdata2    64'd0
-`define is_nop          64'd0
+//pc&instr
+`define nop_pc                  64'd0
+`define nop_instr               32'h00000013 // addi x0, x0, 0
+//info
+`define nop_alu_info            28'd0
+`define nop_load_store_info     11'd0   
+`define nop_opcode_info         13'd0
+`define nop_branch_info         6'd0
+`define nop_csrrw_info          6'd0
+`define nop_system_info         7'd0
+//data
+`define nop_imm                 64'd0
+`define nop_regdata1            64'd0
+`define nop_regdata2            64'd0
+`define nop_csr_rdata           64'd0
+`define nop_mem_rdata           64'd0
+`define nop_alu_result          64'd0
+//reg&csr
+`define nop_reg_rd              5'd0
+`define nop_reg_wen             1'd0
+`define nop_csr_id              12'd0
+`define nop_csr_wen             1'd0
+//commit
+`define nop_commit_info         161'd0
 
 
 

@@ -153,6 +153,7 @@ void execute(uint64_t n){
     npc_single_cycle();                             
     update_cpu_state();
     g_nr_guest_inst++;
+    IFDEF(CONFIG_DEBUG, instr_trace(commit.pc, commit.instr));
     IFDEF(CONFIG_ITRACE,   instr_itrace(commit.pc , commit.instr));
     IFDEF(CONFIG_DIFFTEST, difftest_step(&commit));  
   }

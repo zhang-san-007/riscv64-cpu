@@ -15,12 +15,12 @@ wire [63:0] mem_addr  = regM_i_alu_result;
 wire [63:0] mem_wdata = regM_i_regdata2;
 
 wire inst_lb    =   regM_i_load_store_info[10];
-wire inst_lh    =   regM_i_load_store_info[9];
-wire inst_lw    =   regM_i_load_store_info[8];
-wire inst_ld    =   regM_i_load_store_info[7];
-wire inst_lbu   =   regM_i_load_store_info[6];
-wire inst_lhu   =   regM_i_load_store_info[5];
-wire inst_lwu   =   regM_i_load_store_info[4];
+wire inst_lh    =   regM_i_load_store_info[9 ];
+wire inst_lw    =   regM_i_load_store_info[8 ];
+wire inst_ld    =   regM_i_load_store_info[7 ];
+wire inst_lbu   =   regM_i_load_store_info[6 ];
+wire inst_lhu   =   regM_i_load_store_info[5 ];
+wire inst_lwu   =   regM_i_load_store_info[4 ];
 
 wire inst_sb    =   regM_i_load_store_info[3];
 wire inst_sh    =   regM_i_load_store_info[2];

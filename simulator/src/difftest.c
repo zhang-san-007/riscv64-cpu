@@ -113,7 +113,8 @@ static void checkregs(CPU_state *ref, u64 pc, u64 next_pc) {
     }
     for (int i = 0; i < 4096; ++i){
         if(ref->csr[i] != cpu.csr[i]){
-            printf("dududu------csr error\n");            
+            //比对了csr
+            //printf("dududu------csr error\n");            
         }
     }
 }

@@ -1,12 +1,12 @@
 
 module ctrl(
-    input  wire          execute_i_need_jump,
+    input  wire          execute_i_branch_need_jump,
 
     //加载使用
-    input wire  [11:0]   regE_i_opcode_info,
-    input  wire [4:0]    regE_i_rd,
-    input  wire [4:0]    decode_i_rs1,
-    input  wire [4:0]    decode_i_rs2,
+    input wire  [12:0]   regE_i_opcode_info,
+    input  wire [4:0]    regE_i_reg_rd,
+    input  wire [4:0]    decode_i_reg_rs1,
+    input  wire [4:0]    decode_i_reg_rs2,
 
     output wire          regF_stall,
     output wire          regD_stall,
@@ -23,8 +23,8 @@ module ctrl(
 
 wire inst_load          = regE_i_opcode_info[3];
 
-wire load_use           = (regE_i_rd == decode_i_rs1 || regE_i_rd == decode_i_rs2) && inst_load;
-wire branch_bubble      = execute_i_need_jump;
+wire load_use           = (regE_i_reg_rd == decode_i_reg_rs1 || regE_i_reg_rd == decode_i_reg_rs2) && inst_load;
+wire branch_bubble      = execute_i_branch_need_jump;
 
 assign regF_bubble      = 1'b0;
 assign regD_bubble      = branch_bubble;

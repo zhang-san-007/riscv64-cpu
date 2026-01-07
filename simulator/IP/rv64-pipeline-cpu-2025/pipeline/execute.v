@@ -1,7 +1,7 @@
 module execute(
     input wire  [160:0] regE_i_commit_info,
     //info
-    input wire  [11:0]  regE_i_opcode_info,
+    input wire  [12:0]  regE_i_opcode_info,
     input wire  [5:0]   regE_i_branch_info,
     input wire  [10:0]  regE_i_load_store_info,
     input wire  [27:0]  regE_i_alu_info,
@@ -194,7 +194,7 @@ assign execute_o_branch_need_jump = (inst_beq  && ($signed  (regE_i_regdata1) ==
 							 (op_jal | op_jalr)                                                         ? 1'b1: 1'b0;
 
 wire [63:0] tmp = op_jalr ?  (execute_o_alu_result & ~1) : 64'd0;
-assign  execute_o_next_pc   = op_jalr                      ? (execute_o_alu_result & ~1)           : 
+assign  execute_o_branch_next_pc   = op_jalr                      ? (execute_o_alu_result & ~1)           : 
                               op_jal                       ?  execute_o_alu_result                 : 
                               execute_o_branch_need_jump   ?  execute_o_alu_result                 : 64'd0;
 

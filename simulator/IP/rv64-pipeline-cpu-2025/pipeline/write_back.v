@@ -27,7 +27,7 @@ module write_back(
 
 
 wire op_csrrw        = regW_i_opcode_info[12];
-wire op_system       = regW_i_system_info[11];
+wire op_system       = regW_i_opcode_info[11];
 wire op_jal          = regW_i_opcode_info[9];
 wire op_jalr         = regW_i_opcode_info[8];
 wire op_load         = regW_i_opcode_info[3];

@@ -2,6 +2,7 @@ module fetch(
     input wire clk,
     input wire rst,
     input  wire  [63:0]    pc,
+    output wire  [63:0]    fetch_o_pc,
     output wire  [31:0]    fetch_o_instr,
     output wire  [63:0]    fetch_o_next_pc,
     output wire  [160:0]   fetch_o_commit_info

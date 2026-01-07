@@ -10,8 +10,8 @@ module regfile(
     input   wire            wb_i_reg_wen,
 
     //译码来的数据
-    input   wire [4 :0]     decode_i_rs1,        
-    input   wire [4 :0]     decode_i_rs2,        
+    input   wire [4 :0]     decode_i_reg_rs1,        
+    input   wire [4 :0]     decode_i_reg_rs2,        
     output  wire [63:0]     regfile_o_regdata1, 
     output  wire [63:0]     regfile_o_regdata2  
 );
@@ -31,15 +31,15 @@ initial begin
     regfile[1] = 64'h80000020; 
 end
 
-assign regfile_o_regdata1 = decode_i_rs1 == 5'd0 ? 64'd0 : regfile[decode_i_rs1];
-assign regfile_o_regdata2 = decode_i_rs2 == 5'd0 ? 64'd0 : regfile[decode_i_rs2];
+assign regfile_o_regdata1 = decode_i_reg_rs1 == 5'd0 ? 64'd0 : regfile[decode_i_reg_rs1];
+assign regfile_o_regdata2 = decode_i_reg_rs2 == 5'd0 ? 64'd0 : regfile[decode_i_reg_rs2];
 
 always @(posedge clk) begin
     if(rst) begin
         regfile[0]  <= 64'd0;
     end
-    else if(write_back_i_reg_wen && write_back_i_rd != 5'd0) begin // Check for non-zero destination register.
-        regfile[write_back_i_rd] <= write_back_i_data;
+    else if(wb_i_reg_wen && wb_i_reg_rd != 5'd0) begin // Check for non-zero destination register.
+        regfile[wb_i_reg_rd] <= wb_i_reg_wdata;
     end
 end
 

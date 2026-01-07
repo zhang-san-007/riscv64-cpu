@@ -3,8 +3,8 @@ module csrfile(
     input rst,
     //write
     input wire         wb_i_csr_wen,
-    input wire         wb_i_csr_id,
-    input wire         wb_i_csr_wdata,
+    input wire  [11:0] wb_i_csr_id,
+    input wire  [63:0] wb_i_csr_wdata,
 
     //read
     input  wire [11:0] decode_i_csr_id,
@@ -129,8 +129,8 @@ assign csr_o_csr_rdata    = (csrid == `timer_id)         ?  timer        :
 //CSR的初始值
 
 wire csr_wen    = wb_i_csr_wen;
-wire csr_id     = wb_i_csr_id;
-wire csr_wdata  = wb_i_csr_wdata; 
+wire [11:0] csr_id     = wb_i_csr_id;
+wire [63:0] csr_wdata  = wb_i_csr_wdata; 
 
 always @(posedge clk) begin
     if(rst) begin
@@ -148,7 +148,7 @@ always @(posedge clk) begin
             `timer_id       :   begin       timer           <= csr_wdata;   end
             `cycle_id       :   begin       cycle           <= csr_wdata;         end     
             `instret_id     :   begin       instret         <= csr_wdata;   end
-            `mvendorid_id   :   begin       mvendor         <= csr_wdata;   end
+            `mvendorid_id   :   begin       mvendorid         <= csr_wdata;   end
             `marchid_id     :   begin       marchid         <= csr_wdata;   end
             `mimpid_id      :   begin       mimpid          <= csr_wdata;   end
             `mhartid_id     :   begin       mhartid         <= csr_wdata;   end
