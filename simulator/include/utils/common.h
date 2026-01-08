@@ -36,6 +36,7 @@ typedef   int8_t     i8;
 #define RESET_VECTOR (PMEM_LEFT + CONFIG_PC_RESET_OFFSET)
 
 extern u64 *reg_ptr;
+extern u64 *csr_ptr;
 #define GPR_NUM 32
 #define CSR_NUM 4096
 enum { DIFFTEST_TO_DUT, DIFFTEST_TO_REF };

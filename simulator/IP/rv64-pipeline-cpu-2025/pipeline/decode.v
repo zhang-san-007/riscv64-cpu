@@ -96,7 +96,6 @@ wire inst_load				= (opcode == 7'b00000_11);
 wire inst_store 			= (opcode == 7'b01000_11); 
 wire inst_branch		    = (opcode == 7'b11000_11);
 wire inst_system			= (opcode == 7'b11100_11); 
-
 //异常处理
 wire inst_valid = inst_lui      | inst_auipc    | inst_jal      | 
                   inst_jalr     | inst_alu_reg  | inst_alu_regw | 
@@ -194,21 +193,24 @@ wire inst_mret				= (instr == 32'b00110_00_00010_00000_000_00000_11100_11);
 wire inst_wfi			    = (instr == 32'b00010_00_00101_00000_000_00000_11100_11);
 wire inst_sfence_vma		= (inst_system & (instr[31:27] == 5'b00010) & (instr[14:12] == 3'b000));
 
+wire inst_csr_instr 		=  inst_csrrw | inst_csrrs  | inst_csrrc | inst_csrrwi | inst_csrrsi | inst_csrrci;
+wire inst_system_instr		=  inst_ecall | inst_ebreak | inst_uret	 | inst_sret   | inst_mret	 | inst_wfi   | inst_sfence_vma; 	 
+
 //------------------------------------译码结束-------------------------------------------
 assign decode_o_opcode_info = {
-	inst_csrrw,		//12
-	inst_lui,		//11
-	inst_auipc,		//10
-	inst_jal,		//9
-	inst_jalr,		//8
-	inst_alu_reg,	//7
-	inst_alu_regw,	//6
-	inst_alu_imm,	//5
-	inst_alu_immw,	//4
-	inst_load,   	//3
-	inst_store, 	//2
-	inst_branch,	//1
-	inst_system		//0
+	inst_csr_instr,		//12
+	inst_lui,			//11
+	inst_auipc,			//10
+	inst_jal,			//9
+	inst_jalr,			//8
+	inst_alu_reg,		//7
+	inst_alu_regw,		//6
+	inst_alu_imm,		//5
+	inst_alu_immw,		//4
+	inst_load,   		//3
+	inst_store, 		//2
+	inst_branch,		//1
+	inst_system_instr	//0
 };
 assign decode_o_branch_info = {
 	inst_beq,  // 5
@@ -366,7 +368,7 @@ csrfile u_csrfile(
 	.wb_i_csr_id     	( wb_i_csr_id      ),
 	.wb_i_csr_wdata  	( wb_i_csr_wdata   ),
 	.decode_i_csr_id 	( decode_o_csr_id  ),
-	.csr_o_csr_rdata 	( csr_o_csr_rdata  )
+	.csr_o_csr_rdata 	( decode_o_csr_rdata  )
 );
 
 /*

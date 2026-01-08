@@ -1,4 +1,4 @@
-module CPU(
+module top_cpu(
     input  wire clk,
     input  wire rst,
 

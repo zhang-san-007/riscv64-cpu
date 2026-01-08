@@ -39,17 +39,23 @@ void npc_close_simulation(){
 void update_cpu_state(){
   cpu.pc = dut.cur_pc;
   memcpy(&cpu.gpr[0], reg_ptr, 8 * 32);
+  memcpy(&cpu.csr[0], csr_ptr, 8 * 4096);
   
 }
 void npc_single_cycle() {
-  dut.clk = 0;  dut.eval();   
+  dut.clk = 0;  
+  printf("这里能执行\n");
+  dut.eval();   
+  printf("这里执行不了\n");
   IFDEF(CONFIG_NPC_OPEN_SIM,   m_trace->dump(sim_time++));
   dut.clk = 1;  dut.eval(); 
+
   IFDEF(CONFIG_NPC_OPEN_SIM,   m_trace->dump(sim_time++));
   clk_count++;
 }
 void npc_reset(int n) {
   dut.rst = 1;
+  printf("npc_reset\n");
   while (n -- > 0) npc_single_cycle();
   dut.rst = 0;
 }

@@ -1,4 +1,4 @@
-TOPNAME :=CPU
+TOPNAME :=top_cpu
 CPU_DIR=$(SIM_HOME)/IP/rv64-pipeline-cpu-2025
 SRC_DIR:=$(SIM_HOME)/src  
 
