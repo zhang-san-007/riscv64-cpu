@@ -5,6 +5,7 @@
 
 CPU_state cpu; 
 u64 *reg_ptr = NULL;
+u64 *csr_ptr = NULL;
 
 const char *regs[] = {
   "$0", "ra", "sp",  "gp",  "tp", "t0", "t1", "t2",

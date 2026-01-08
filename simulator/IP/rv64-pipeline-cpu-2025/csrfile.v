@@ -10,195 +10,64 @@ module csrfile(
     input  wire [11:0] decode_i_csr_id,
     output wire [63:0] csr_o_csr_rdata
 ); 
+reg [63:0] csrfile[4096];
 
-// Machine Information Registers
-import "DPI-C" function void get_m_information_csr  (input longint mvendorid, input longint marchid, input longint mimpid, input longint mhartid, input longint mconfigptr);
-// Machine Trap Setup and Handling
-import "DPI-C" function void get_m_trap_setup_csr   (input longint mstatus, input longint misa, input longint medeleg, input longint mideleg, input longint mie, input longint mtvec, input longint mcounteren);
-import "DPI-C" function void get_m_trap_handing_csr (input longint mscratch, input longint mepc, input longint mcause, input longint mtval, input longint mip);
-import "DPI-C" function void get_m_counter_timer_csr(input longint mcycle, input longint minstret);
-
-// Supervisor Mode Registers
-import "DPI-C" function void get_s_satp_csr           (input longint satp);
-import "DPI-C" function void get_s_trap_setup_csr   (input longint sstatus, input longint sie, input longint stvec, input longint scounteren);
-import "DPI-C" function void get_s_trap_handing_csr (input longint sscratch, input longint sepc, input longint scause, input longint stval, input longint sip);
-
-// User Mode Registers
-import "DPI-C" function void get_u_counter_timer_csr(input longint cycle, input longint timer, input longint instret);
-
-// PMP Configuration and Address Registers
-import "DPI-C" function void get_pmp_cfg_csr    (input longint pmpcfg0, input longint pmpcfg1, input longint pmpcfg2, input longint pmpcfg3);
-import "DPI-C" function void get_pmp_addr1_csr  (input longint pmpaddr0, input longint pmpaddr1, input longint pmpaddr2, input longint pmpaddr3);
-import "DPI-C" function void get_pmp_addr2_csr  (input longint pmpaddr4, input longint pmpaddr5, input longint pmpaddr6, input longint pmpaddr7);
-import "DPI-C" function void get_pmp_addr3_csr  (input longint pmpaddr8, input longint pmpaddr9, input longint pmpaddr10, input longint pmpaddr11);
-import "DPI-C" function void get_pmp_addr4_csr  (input longint pmpaddr12, input longint pmpaddr13, input longint pmpaddr14, input longint pmpaddr15);
-
-//--------------------------------csr-reg--------------------------------------------
-//machine information reg
-reg [63:0] mvendorid, marchid, mimpid, mhartid, mconfigptr, misa;
-//machine trap setup and handing
-reg [63:0] mstatus, medeleg, mideleg, mie, mtvec, mcounteren;
-reg [63:0] mscratch, mepc, mcause, mtval, mip;
-reg [63:0] mcycle, minstret;
-
-//s mode
-reg [63:0] satp;
-reg [63:0] sstatus, sie, stvec, scounteren;
-reg [63:0] sscratch, sepc, scause, stval, sip;
-
-//user mode
-reg [63:0] cycle, timer, instret;
-//pmp
-reg [63:0] pmpcfg0,     pmpcfg1,    pmpcfg2,    pmpcfg3;
-reg [63:0] pmpaddr0,    pmpaddr1,   pmpaddr2,   pmpaddr3;
-reg [63:0] pmpaddr4,    pmpaddr5,   pmpaddr6,   pmpaddr7;
-reg [63:0] pmpaddr8,    pmpaddr9,   pmpaddr10,  pmpaddr11;
-reg [63:0] pmpaddr12,   pmpaddr13,  pmpaddr14,  pmpaddr15; 
-
-always @(*) begin 
-    get_m_information_csr  (mvendorid, marchid, mimpid, mhartid, mconfigptr);
-    get_m_trap_setup_csr   (mstatus, misa, medeleg, mideleg, mie, mtvec, mcounteren);
-    get_m_trap_handing_csr (mscratch, mepc, mcause, mtval, mip);
-    get_m_counter_timer_csr(mcycle, minstret);
-    get_s_satp_csr         (satp);
-    get_s_trap_setup_csr   (sstatus, sie, stvec, scounteren);
-    get_s_trap_handing_csr (sscratch, sepc, scause, stval, sip);
-    get_u_counter_timer_csr(cycle, timer, instret);
-    get_pmp_cfg_csr        (pmpcfg0, pmpcfg1, pmpcfg2, pmpcfg3);
-    get_pmp_addr1_csr      (pmpaddr0, pmpaddr1, pmpaddr2, pmpaddr3);
-    get_pmp_addr2_csr      (pmpaddr4, pmpaddr5, pmpaddr6, pmpaddr7);
-    get_pmp_addr3_csr      (pmpaddr8, pmpaddr9, pmpaddr10, pmpaddr11);
-    get_pmp_addr4_csr      (pmpaddr12, pmpaddr13, pmpaddr14, pmpaddr15);
+import "DPI-C" function void dpi_read_csrfile(input logic [63 : 0] a []); 
+initial begin
+    dpi_read_csrfile(csrfile);
 end
 
 
-wire [11:0] csrid      = decode_i_csr_id;
 
-assign csr_o_csr_rdata    = (csrid == `timer_id)         ?  timer        :
-                            (csrid == `cycle_id)         ?  cycle       :
-                            (csrid == `instret_id)       ?  instret     :
-                            (csrid == `mvendorid_id)     ?  mvendorid   :
-                            (csrid == `marchid_id)       ?   marchid     :
-                            (csrid == `mimpid_id)        ?   mimpid      :
-                            (csrid == `mhartid_id)       ?   mhartid     :
-                            (csrid == `mconfigptr_id)    ?   mconfigptr  :
-                            (csrid == `misa_id)          ?   misa        :
-                            (csrid == `mstatus_id)       ?   mstatus     :
-                            (csrid == `medeleg_id)       ?   medeleg     :
-                            (csrid == `mie_id)           ?   mie         :
-                            (csrid == `mtvec_id)         ?   mtvec       :
-                            (csrid == `mcounteren_id)    ?   mcounteren  :
-                            (csrid == `mscratch_id)      ?   mscratch    :    
-                            (csrid == `mepc_id)          ?   mepc        :
-                            (csrid == `mcause_id)        ?   mcause      :
-                            (csrid == `mtval_id)         ?   mtval       :
-                            (csrid == `mip_id)           ?   mip         :
-                            (csrid == `mcycle_id)        ?   mcycle      :
-                            (csrid == `minstret_id)      ?   minstret    :
-                            (csrid == `satp_id)          ?   satp        :
-                            (csrid == `sstatus_id)       ?   sstatus     :
-                            (csrid == `sie_id)           ?   sie         :
-                            (csrid == `stvec_id)         ?   stvec       :
-                            (csrid == `scounteren_id)    ?   scounteren  :
-                            (csrid == `sscratch_id)      ?   sscratch    :
-                            (csrid == `sepc_id)          ?   sepc        :
-                            (csrid == `scause_id)        ?   scause      :
-                            (csrid == `stval_id)         ?   stval       :
-                            (csrid == `sip_id)           ?   sip         :
-                            (csrid == `pmpcfg0_id)       ?   pmpcfg0     :
-                            (csrid == `pmpcfg1_id)       ?   pmpcfg1     :
-                            (csrid == `pmpcfg2_id)       ?   pmpcfg2     :
-                            (csrid == `pmpcfg3_id)       ?   pmpcfg3     :
-                            (csrid == `pmpaddr0_id)       ?   pmpaddr0    :
-                            (csrid == `pmpaddr1_id)       ?   pmpaddr1    :
-                            (csrid == `pmpaddr2_id)       ?   pmpaddr2    :
-                            (csrid == `pmpaddr3_id)       ?   pmpaddr3    :
-                            (csrid == `pmpaddr4_id)       ?   pmpaddr4    :
-                            (csrid == `pmpaddr5_id)       ?   pmpaddr5    :
-                            (csrid == `pmpaddr6_id)       ?   pmpaddr6    :
-                            (csrid == `pmpaddr7_id)       ?   pmpaddr7    :
-                            (csrid == `pmpaddr8_id)       ?   pmpaddr8    :
-                            (csrid == `pmpaddr9_id)       ?   pmpaddr9    :
-                            (csrid == `pmpaddr10_id)      ?   pmpaddr10   :
-                            (csrid == `pmpaddr11_id)      ?   pmpaddr11   :
-                            (csrid == `pmpaddr12_id)      ?   pmpaddr12   :
-                            (csrid == `pmpaddr13_id)      ?   pmpaddr13   :
-                            (csrid == `pmpaddr14_id)      ?   pmpaddr14   :
-                            (csrid == `pmpaddr15_id)      ?   pmpaddr15   :64'd0;
+wire [11:0] csr_rid     = decode_i_csr_id;
+wire csr_user    =    (csr_rid == `cycle)       | (csr_rid == `timer)       | (csr_rid == `instret);
+wire csr_machine =    (csr_rid == `mvendorid)   | (csr_rid == `marchid)     | (csr_rid == `mimpid)
+                    | (csr_rid == `mhartid)     | (csr_rid == `mconfigptr)  | (csr_rid == `misa)
+                    | (csr_rid == `mstatus)     | (csr_rid == `medeleg)     | (csr_rid == `mideleg)
+                    | (csr_rid == `mie)         | (csr_rid == `mtvec)       | (csr_rid == `mcounteren)
+                    | (csr_rid == `mscratch)    | (csr_rid == `mepc)        | (csr_rid == `mcause)
+                    | (csr_rid == `mtval)       | (csr_rid == `mip)         | (csr_rid == `mcycle)                 
+                    | (csr_rid == `minstret);
+wire csr_supervisor = (csr_rid == `sstatus)   | (csr_rid == `sie)     | (csr_rid == `stvec)  | (csr_rid == `scounteren)
+                    | (csr_rid == `sscratch)  | (csr_rid == `sepc)    | (csr_rid == `scause) | (csr_rid == `stval)
+                    | (csr_rid == `sip)       | (csr_rid == `satp);
+wire csr_pmp =        (csr_rid == `pmpcfg0)  | (csr_rid == `pmpcfg1)  | (csr_rid == `pmpcfg2)  | (csr_rid == `pmpcfg3)
+                    | (csr_rid == `pmpaddr0) | (csr_rid == `pmpaddr1) | (csr_rid == `pmpaddr2) | (csr_rid == `pmpaddr3)
+                    | (csr_rid == `pmpaddr4) | (csr_rid == `pmpaddr5) | (csr_rid == `pmpaddr6) | (csr_rid == `pmpaddr7)
+                    | (csr_rid == `pmpaddr8) | (csr_rid == `pmpaddr9) | (csr_rid == `pmpaddr10)| (csr_rid == `pmpaddr11)
+                    | (csr_rid == `pmpaddr12)| (csr_rid == `pmpaddr13)| (csr_rid == `pmpaddr14)| (csr_rid == `pmpaddr15);
+wire right_csr_rid = csr_user | csr_machine | csr_supervisor | csr_pmp;
+
+assign csr_o_csr_rdata =  right_csr_rid ? csrfile[csr_rid] : 64'd0;  
+
 
 //CSR的初始值
 
 wire csr_wen    = wb_i_csr_wen;
-wire [11:0] csr_id     = wb_i_csr_id;
+wire [11:0] csr_wid     = wb_i_csr_id;
 wire [63:0] csr_wdata  = wb_i_csr_wdata; 
+
+
+initial begin
+    integer i;
+    for (i = 0; i < 4096; i = i + 1) begin
+        csrfile[i] = 64'd0; 
+    end
+end
 
 always @(posedge clk) begin
     if(rst) begin
-        mhartid <= 64'd0;
-        mtvec   <= 64'd0;
-        mstatus <= 64'd0;
-        mie     <= 64'd0;
-        mip     <= 64'd0;
-        satp    <= 64'd0;
-        medeleg <= 64'd0;
-        mideleg <= 64'd0;
+        csrfile[`mhartid] <= 64'd0;
+        csrfile[`mtvec]   <= 64'd0;
+        csrfile[`mstatus] <= 64'h0000_000a_0000_0000;
+        csrfile[`mie]     <= 64'd0;
+        csrfile[`mip]     <= 64'd0;        
+        csrfile[`satp]    <= 64'd0;
+        csrfile[`medeleg] <= 64'd0;
+        csrfile[`mideleg] <= 64'd0;
     end
     else if(csr_wen) begin
-        case(csr_id) 
-            `timer_id       :   begin       timer           <= csr_wdata;   end
-            `cycle_id       :   begin       cycle           <= csr_wdata;         end     
-            `instret_id     :   begin       instret         <= csr_wdata;   end
-            `mvendorid_id   :   begin       mvendorid         <= csr_wdata;   end
-            `marchid_id     :   begin       marchid         <= csr_wdata;   end
-            `mimpid_id      :   begin       mimpid          <= csr_wdata;   end
-            `mhartid_id     :   begin       mhartid         <= csr_wdata;   end
-            `mconfigptr_id  :   begin       mconfigptr      <= csr_wdata;   end
-            `misa_id        :   begin       misa            <= csr_wdata;   end
-            `mstatus_id     :   begin       mstatus         <= csr_wdata;   end
-            `medeleg_id     :   begin       medeleg         <= csr_wdata;   end
-            `mie_id         :   begin       mie             <= csr_wdata;   end
-            `mtvec_id       :   begin       mtvec           <= csr_wdata;   end
-            `mcounteren_id  :   begin       mcounteren      <= csr_wdata;   end
-            `mscratch_id    :   begin       mscratch        <= csr_wdata;   end
-            `mepc_id        :   begin       mepc            <= csr_wdata;   end
-            `mcause_id      :   begin       mcause          <= csr_wdata;   end
-            `mtval_id       :   begin       mtval           <= csr_wdata;   end
-            `mip_id         :   begin       mip             <= csr_wdata;   end
-            `mcycle_id      :   begin       mcycle          <= csr_wdata;   end
-            `minstret_id    :   begin       minstret        <= csr_wdata;   end
-            `satp_id        :   begin       satp            <= csr_wdata;   end
-            `sie_id         :   begin       sie             <= csr_wdata;   end
-            `stvec_id       :   begin       stvec           <= csr_wdata;   end
-            `scounteren_id  :   begin       scounteren      <= csr_wdata;   end
-            `sscratch_id    :   begin       sscratch        <= csr_wdata;   end
-            `sepc_id        :   begin       sepc            <= csr_wdata;   end
-            `scause_id      :   begin       scause          <= csr_wdata;   end
-            `stval_id       :   begin       stval           <= csr_wdata;   end
-            `sip_id         :   begin       sip             <= csr_wdata;   end
-            `pmpcfg0_id     :   begin       pmpcfg0         <= csr_wdata;   end
-            `pmpcfg1_id     :   begin       pmpcfg1         <= csr_wdata;   end
-            `pmpcfg2_id     :   begin       pmpcfg2         <= csr_wdata;   end
-            `pmpcfg3_id     :   begin       pmpcfg3         <= csr_wdata;   end
-            `pmpaddr0_id    :   begin       pmpaddr0        <= csr_wdata;   end
-            `pmpaddr1_id    :   begin       pmpaddr1        <= csr_wdata;   end
-            `pmpaddr2_id    :   begin       pmpaddr2        <= csr_wdata;   end
-            `pmpaddr3_id    :   begin       pmpaddr3        <= csr_wdata;   end
-            `pmpaddr4_id    :   begin       pmpaddr4        <= csr_wdata;   end
-            `pmpaddr5_id    :   begin       pmpaddr5        <= csr_wdata;   end
-            `pmpaddr6_id    :   begin       pmpaddr6        <= csr_wdata;   end
-            `pmpaddr7_id    :   begin       pmpaddr7        <= csr_wdata;   end
-            `pmpaddr8_id    :   begin       pmpaddr8        <= csr_wdata;   end
-            `pmpaddr9_id    :   begin       pmpaddr9        <= csr_wdata;   end
-            `pmpaddr10_id   :   begin       pmpaddr10       <= csr_wdata;   end
-            `pmpaddr11_id   :   begin       pmpaddr11       <= csr_wdata;   end
-            `pmpaddr12_id   :   begin       pmpaddr12       <= csr_wdata;   end
-            `pmpaddr13_id   :   begin       pmpaddr13       <= csr_wdata;   end
-            `pmpaddr14_id   :   begin       pmpaddr14       <= csr_wdata;   end
-            `pmpaddr15_id   :   begin       pmpaddr15       <= csr_wdata;   end 
-            default: begin
-
-            end
-        endcase
+        csrfile[csr_wid] <= csr_wdata;
     end
 end
                   
