@@ -84,15 +84,12 @@ void init_simulator(int argc, char **argv){
   init_rand();
   init_log(log_file);
   init_mem();
-//  dump_pmem_to_log();
-// 打印 60 个字符长的绿色等号线
-
+  //  dump_pmem_to_log();
   load_builded_img();
   long img_size = load_img();
   //处理器初始化
-//  dump_pmem_4kb();
-//dump_pmem_to_log();
-  printf("111\n");
+  //dump_pmem_4kb();
+  //dump_pmem_to_log();
 
   npc_init();
   printf("222\n");

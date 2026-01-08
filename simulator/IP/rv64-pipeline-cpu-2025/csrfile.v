@@ -16,7 +16,12 @@ import "DPI-C" function void dpi_read_csrfile(input logic [63 : 0] a []);
 initial begin
     dpi_read_csrfile(csrfile);
 end
-
+initial begin
+    integer i;
+    for (i = 0; i < 4096; i = i + 1) begin
+        csrfile[i] = 64'd0; 
+    end
+end
 
 
 wire [11:0] csr_rid     = decode_i_csr_id;
@@ -48,23 +53,18 @@ wire [11:0] csr_wid     = wb_i_csr_id;
 wire [63:0] csr_wdata  = wb_i_csr_wdata; 
 
 
-initial begin
-    integer i;
-    for (i = 0; i < 4096; i = i + 1) begin
-        csrfile[i] = 64'd0; 
-    end
-end
+
 
 always @(posedge clk) begin
     if(rst) begin
-        csrfile[`mhartid] <= 64'd0;
-        csrfile[`mtvec]   <= 64'd0;
-        csrfile[`mstatus] <= 64'h0000_000a_0000_0000;
-        csrfile[`mie]     <= 64'd0;
-        csrfile[`mip]     <= 64'd0;        
-        csrfile[`satp]    <= 64'd0;
-        csrfile[`medeleg] <= 64'd0;
-        csrfile[`mideleg] <= 64'd0;
+        // csrfile[`mhartid] <= 64'd0;
+        // csrfile[`mtvec]   <= 64'd0;
+        // csrfile[`mstatus] <= 64'd0; //64'h0000_000a_0000_0000;
+        // csrfile[`mie]     <= 64'd0;
+        // csrfile[`mip]     <= 64'd0;        
+        // csrfile[`satp]    <= 64'd0;
+        // csrfile[`medeleg] <= 64'd0;
+        // csrfile[`mideleg] <= 64'd0;
     end
     else if(csr_wen) begin
         csrfile[csr_wid] <= csr_wdata;

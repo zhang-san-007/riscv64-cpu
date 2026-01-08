@@ -43,19 +43,13 @@ void update_cpu_state(){
   
 }
 void npc_single_cycle() {
-  dut.clk = 0;  
-  printf("这里能执行\n");
-  dut.eval();   
-  printf("这里执行不了\n");
+  dut.clk = 0;  dut.eval();   
   IFDEF(CONFIG_NPC_OPEN_SIM,   m_trace->dump(sim_time++));
   dut.clk = 1;  dut.eval(); 
-
   IFDEF(CONFIG_NPC_OPEN_SIM,   m_trace->dump(sim_time++));
   clk_count++;
 }
 void npc_reset(int n) {
-  printf("right\n");
-
   dut.rst = 1;
   printf("npc_reset\n");
   while (n -- > 0) npc_single_cycle();
@@ -121,10 +115,8 @@ void print_cpu(FILE *out) {
 void npc_init() {
   IFDEF(CONFIG_NPC_OPEN_SIM, npc_open_simulation());  
   npc_reset(1);
-  printf("right\n");
   update_cpu_state();
 //  print_cpu(NULL);
-
   if(cpu.pc != 0x80000000){
     npc_close_simulation();
     printf("处理器的值目前为pc=0x%lx, 处理器初始化/复位之后, PC值应该为0x80000000\n", cpu.pc);

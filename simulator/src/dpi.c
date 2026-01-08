@@ -4,10 +4,8 @@
 #include <defs.h>
 #include "verilated_dpi.h" 
 extern CPU_state cpu; 
-extern u64 *reg_ptr;
-
-
-
+// extern u64 *reg_ptr;
+// extern u64 *csr_ptr;
 
 
 extern "C" void dpi_ebreak(){
