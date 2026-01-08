@@ -44,9 +44,7 @@ void update_cpu_state(){
 }
 void npc_single_cycle() {
   dut.clk = 0;  
-  printf("这里能执行\n");
   dut.eval();   
-  printf("这里执行不了\n");
   IFDEF(CONFIG_NPC_OPEN_SIM,   m_trace->dump(sim_time++));
   dut.clk = 1;  dut.eval(); 
 

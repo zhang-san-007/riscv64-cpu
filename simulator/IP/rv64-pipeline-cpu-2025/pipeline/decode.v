@@ -2,6 +2,7 @@
 module decode(
     input wire clk,                      // 时钟信号
     input wire rst,                      // 复位信号
+	input wire [63:0]   regD_i_pc,       //这个pc是为了方便看波形
     input wire [31:0]   regD_i_instr,    // 输入指令
 
 	//execute阶段数据前递
@@ -19,9 +20,10 @@ module decode(
 	input wire [63:0]	regW_i_pc,
 	input wire [63:0]   regW_i_alu_result,
 	input wire [63:0]	regW_i_mem_rdata,
+	input wire [63:0]   regW_i_csr_rdata,
 	input wire  [4:0]	regW_i_reg_rd,
 	input wire  		regW_i_reg_wen,
-
+	
 
 	//wb_reg
 	input wire 		  	wb_i_reg_wen,
@@ -336,7 +338,7 @@ regfile u_regfile(
 );
 
 
-wire regM_sel_mem_rdata 		= regM_i_opcode_info[3];
+wire regM_sel_mem_rdata 	= regM_i_opcode_info[3];
 wire regM_sel_alu_result    = regM_i_opcode_info[1] | regM_i_opcode_info[4] | regM_i_opcode_info[5] | regM_i_opcode_info[6]|
 							  regM_i_opcode_info[7] | regM_i_opcode_info[10] | regM_i_opcode_info[11];
 
@@ -344,20 +346,24 @@ wire regW_sel_mem_rdata		= regW_i_opcode_info[3];
 wire regW_sel_pc			= regW_i_opcode_info[8] | regW_i_opcode_info[9];
 wire regW_sel_alu_result    = regW_i_opcode_info[1] | regW_i_opcode_info[4]  | regW_i_opcode_info[5] | regW_i_opcode_info[6]|
 							  regW_i_opcode_info[7] | regW_i_opcode_info[10] | regW_i_opcode_info[11];
+wire regW_sel_csr_rdata		= regW_i_opcode_info[12];
 
 assign decode_o_regdata1 = regE_i_reg_rd != 5'd0 && regE_i_reg_wen && regE_i_reg_rd == rs1 ? execute_i_alu_result 	: 
 						   regM_i_reg_rd != 5'd0 && regM_i_reg_wen && regM_i_reg_rd == rs1 && regM_sel_alu_result	? regM_i_alu_result     : 
 						   regM_i_reg_rd != 5'd0 && regM_i_reg_wen && regM_i_reg_rd == rs1 && regM_sel_mem_rdata  	? memory_i_mem_rdata 	: 
 						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs1 && regW_sel_alu_result 	? regW_i_alu_result 	: 
 						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs1 && regW_sel_mem_rdata		? regW_i_mem_rdata 		: 
-						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs1 && regW_sel_pc			? regW_i_pc + 64'd4     : regfile_o_regdata1; 
+						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs1 && regW_sel_pc			? regW_i_pc + 64'd4     : 
+						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs1 && regW_sel_csr_rdata	? regW_i_csr_rdata	    : regfile_o_regdata1; 
+
 
 assign decode_o_regdata2 = regE_i_reg_rd != 5'd0 && regE_i_reg_wen && regE_i_reg_rd == rs2 ? execute_i_alu_result 	: 
 						   regM_i_reg_rd != 5'd0 && regM_i_reg_wen && regM_i_reg_rd == rs2 && regM_sel_alu_result	? regM_i_alu_result     : 
 						   regM_i_reg_rd != 5'd0 && regM_i_reg_wen && regM_i_reg_rd == rs2 && regM_sel_mem_rdata  	? memory_i_mem_rdata 		: 
 						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs2 && regW_sel_alu_result 	? regW_i_alu_result 	: 
 						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs2 && regW_sel_mem_rdata     ? regW_i_mem_rdata 		: 
-						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs2 && regW_sel_pc			? regW_i_pc + 64'd4     : regfile_o_regdata2; 
+						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs2 && regW_sel_pc			? regW_i_pc + 64'd4     : 
+							regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs2 && regW_sel_pc			? regW_i_csr_rdata     : regfile_o_regdata2; 
 // outports wire
 wire [63:0] 	csr_o_csr_rdata;
 

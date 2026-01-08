@@ -44,6 +44,7 @@
 `define mie         12'h304
 `define mtvec       12'h305
 `define mcounteren  12'h306
+`define menvcfg     12'h30A
 `define mscratch    12'h340
 `define mepc        12'h341
 `define mcause      12'h342

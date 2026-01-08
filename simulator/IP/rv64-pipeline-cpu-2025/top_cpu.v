@@ -80,6 +80,7 @@ wire        	decode_o_reg_wen;
 decode u_decode(
 	.clk                      	( clk                       ),
 	.rst                      	( rst                       ),
+	.regD_i_pc					(regD_o_pc),
 	.regD_i_instr             	( regD_o_instr              ),
 	.execute_i_alu_result     	( execute_o_alu_result      ),
 	.regE_i_reg_rd            	( regE_o_reg_rd             ),
@@ -93,6 +94,7 @@ decode u_decode(
 	.regW_i_pc                	( regW_o_pc                 ),
 	.regW_i_alu_result        	( regW_o_alu_result         ),
 	.regW_i_mem_rdata         	( regW_o_mem_rdata          ),
+	.regW_i_csr_rdata			(regW_o_csr_rdata),
 	.regW_i_reg_rd            	( regW_o_reg_rd             ),
 	.regW_i_reg_wen           	( regW_o_reg_wen            ),
 	.wb_i_reg_wen             	( wb_o_reg_wen              ),

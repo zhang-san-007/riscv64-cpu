@@ -159,19 +159,40 @@ static void checkregs(CPU_state *ref, u64 pc, u64 next_pc) {
 #define GET_OPCODE(i) ((i) & 0x7f)
 #define GET_FUNCT3(i) (((i) >> 12) & 0x7)
 #define GET_RD(i)     (((i) >> 7) & 0x1f)
+#define GET_CSR_ID(i) (((i) >> 20) & 0xfff)  // 指令[31:20] - CSR地址（12位）
+
 
 #define op_load  0b0000011
 #define op_store 0b0100011
+#define op_csr   0b1110011
+#define func3000 0b000
+#define func3001 0b001
+#define func3010 0b010
+
+
 void difftest_step(commit_t *commit) {
     CPU_state ref_r;
+
+    u32 instr = commit->instr;
+    u32 opcode = GET_OPCODE(instr);
+    u32 funct3 = GET_FUNCT3(instr);
+    u32 csr_id = GET_CSR_ID(instr);  // 直接使用宏获取 CSR 
+        
+    //在执行之前，如果是csrrw time这样的指令，直接让ref跳过一次，然后将cpu的值复制给ref
+    if(opcode == op_csr && funct3 == func3010){
+        if(csr_id == timer){
+            printf("我当前执行的指令是instr%0x\n", instr);
+            printf("cpu.s0
+            ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
+            return;
+        }
+    }
+
+    //真正的让ref执行一次
     ref_difftest_exec(1);
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
 
-    uint32_t instr = commit->instr;
-    uint32_t opcode = instr & 0b01111111;
-    uint32_t funct3 = (instr >> 12) & 0b111;
-        
-    //load_store特殊处理一下
+    //比对load和store执行完之后的内容是否一致
     if (opcode == op_load) {
         int rd = GET_RD(instr);
         int bytes = (1 << (funct3 & 0x3)); 
@@ -220,6 +241,8 @@ void difftest_step(commit_t *commit) {
         }
     }
     //
+
+
     checkregs(&ref_r, commit->pc, commit->next_pc);
     checkcsrs(&ref_r, commit->pc, commit->next_pc);
 }
