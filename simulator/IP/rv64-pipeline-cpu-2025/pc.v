@@ -27,5 +27,4 @@ always @(posedge clk) begin
         pc <= fetch_i_next_pc; 
     end    
 end
-
 endmodule
