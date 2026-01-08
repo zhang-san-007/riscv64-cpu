@@ -14,5 +14,5 @@ void init_log(const char *log_file) {
   Log("程序运行日志将被写入到 %s", log_file ? log_file : "stdout");
 }
 bool log_enable() {
-  return true;
+  return log_fp != NULL;
 }

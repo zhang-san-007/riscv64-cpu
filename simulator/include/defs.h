@@ -81,8 +81,9 @@ void	 pmem_write(paddr_t addr, int len, word_t data);
 void     instr_trace(u64 pc, u32 commit_instr);
 void     instr_itrace_display();
 void     instr_itrace(u64 pc, u32 instr);
+void instr_trace_log(u64 pc, u32 instr);
+
 //trace---->instr_profile
 void instr_coverage_display();
 void mark_instr_executed(u32 instr);
-
 #endif

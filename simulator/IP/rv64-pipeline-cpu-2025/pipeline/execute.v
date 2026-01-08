@@ -195,8 +195,8 @@ assign execute_o_branch_need_jump = (inst_beq  && ($signed  (regE_i_regdata1) ==
 
 wire [63:0] tmp = op_jalr ?  (execute_o_alu_result & ~1) : 64'd0;
 assign  execute_o_branch_next_pc   = op_jalr                      ? (execute_o_alu_result & ~1)           : 
-                              op_jal                       ?  execute_o_alu_result                 : 
-                              execute_o_branch_need_jump   ?  execute_o_alu_result                 : 64'd0;
+                                    op_jal                        ?  execute_o_alu_result                 : 
+                                    execute_o_branch_need_jump    ?  execute_o_alu_result                 : 64'd0;
 
 
 assign execute_o_commit_info = execute_o_branch_need_jump ? {regE_i_commit_info[160], regE_i_commit_info[159:128], execute_o_branch_next_pc, regE_i_commit_info[63:0]} : regE_i_commit_info;

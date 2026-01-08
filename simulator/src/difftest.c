@@ -6,7 +6,29 @@
 #include <defs.h>
 #include <debug.h>
 #include <cpu.h>
+typedef struct {
+    int id;
+    const char *name;
+} csr_map_t;
 
+// 将你 enum 中定义的 CSR 罗列在此
+static const csr_map_t target_csrs[] = {
+    {0xc00, "cycle"},    {0xc01, "timer"},     {0xc02, "instret"},
+    {0x100, "sstatus"},  {0x104, "sie"},       {0x105, "stvec"},      {0x106, "scounteren"},
+    {0x140, "sscratch"}, {0x141, "sepc"},      {0x142, "scause"},     {0x143, "stval"}, {0x144, "sip"},
+    {0x180, "satp"},
+    {0xf11, "mvendorid"}, {0xf12, "marchid"},  {0xf13, "mimpid"},     {0xf14, "mhartid"}, {0xf15, "mconfigptr"},
+    {0x300, "mstatus"},   {0x301, "misa"},     {0x302, "medeleg"},    {0x303, "mideleg"}, {0x304, "mie"}, {0x305, "mtvec"}, {0x306, "mcounteren"},
+    {0x340, "mscratch"},  {0x341, "mepc"},     {0x342, "mcause"},     {0x343, "mtval"}, {0x344, "mip"},
+    {0xb00, "mcycle"},    {0xb02, "minstret"}, {0x7a0, "tselect"},    {0x7a1, "tdata1"},
+    {0x3a0, "pmpcfg0"},   {0x3a1, "pmpcfg1"},  {0x3a2, "pmpcfg2"},    {0x3a3, "pmpcfg3"},
+    {0x3b0, "pmpaddr0"},  {0x3b1, "pmpaddr1"}, {0x3b2, "pmpaddr2"},   {0x3b3, "pmpaddr3"},
+    {0x3b4, "pmpaddr4"},  {0x3b5, "pmpaddr5"}, {0x3b6, "pmpaddr6"},   {0x3b7, "pmpaddr7"},
+    {0x3b8, "pmpaddr8"},  {0x3b9, "pmpaddr9"}, {0x3ba, "pmpaddr10"},  {0x3bb, "pmpaddr11"},
+    {0x3bc, "pmpaddr12"}, {0x3bd, "pmpaddr13"}, {0x3be, "pmpaddr14"}, {0x3bf, "pmpaddr15"}
+};
+
+#define NR_TARGET_CSR (sizeof(target_csrs) / sizeof(target_csrs[0]))
 
 void (*ref_difftest_memcpy)(paddr_t addr, void *buf, size_t n, bool direction) = NULL;
 void (*ref_difftest_regcpy)(void *dut, bool direction) = NULL;
@@ -90,13 +112,30 @@ static void display_diff_error(CPU_state *ref, u64 pc, u64 next_pc, const char *
         printf("%s%c [REF.%-3s]=0x%016lx | [DUT.%-3s]=0x%016lx%s\n", 
                color, mismatch ? '*' : ' ', reg_name(i), ref->gpr[i], reg_name(i), cpu.gpr[i], ANSI_NONE);
     }
-    // 3. 退出模拟
+
+
     npc_single_cycle();
     npc_close_simulation();
     Log("[NPC] Difftest 终止，请检查上述差异。\n");
     exit(1);
 }
-
+static void checkcsrs(CPU_state *ref, u64 pc, u64 next_pc) {
+    for (int i = 0; i < NR_TARGET_CSR; i++) {
+        int id = target_csrs[i].id;
+        const char *name = target_csrs[i].name;
+        if( id == cycle || id==timer || instret) {
+            continue;
+        }
+        // if (id == mcycle || id == minstret || id == cycle || id == timer || id == instret) {
+        //     continue;
+        // }
+        if (ref->csr[id] != cpu.csr[id]) {
+            char buf[128];
+            snprintf(buf, sizeof(buf), "CSR [%s] (0x%03x) 数值不一致! \t[REF]=0x%016lx, [DUT]=0x%016lx", name, id, ref->csr[id], cpu.csr[id]);
+            display_diff_error(ref, pc, next_pc, buf);
+        }
+    }
+}
 static void checkregs(CPU_state *ref, u64 pc, u64 next_pc) {
     // 1. 检查 PC 是否匹配
     if (next_pc != ref->pc) {
@@ -111,12 +150,7 @@ static void checkregs(CPU_state *ref, u64 pc, u64 next_pc) {
             display_diff_error(ref, pc, next_pc, buf);
         }
     }
-    for (int i = 0; i < 4096; ++i){
-        if(ref->csr[i] != cpu.csr[i]){
-            //比对了csr
-            //printf("dududu------csr error\n");            
-        }
-    }
+
 }
 
 #include <stdint.h>
@@ -185,8 +219,9 @@ void difftest_step(commit_t *commit) {
             sim_state.state = SIM_ABORT;
         }
     }
-
+    //
     checkregs(&ref_r, commit->pc, commit->next_pc);
+    checkcsrs(&ref_r, commit->pc, commit->next_pc);
 }
 
 

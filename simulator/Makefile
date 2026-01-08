@@ -52,7 +52,7 @@ $(BIN): $(VSRCS) $(CSRCS)
 		$(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
 
-override ARGS ?= --log=$(BUILD_DIR)/npc-log.txt
+override ARGS ?= --log=$(SIM_HOME)/bin/npc-log.txt
 override ARGS += --diff=$(SIM_HOME)/diff/riscv64-spike-so
 override ARGS += --batch
 

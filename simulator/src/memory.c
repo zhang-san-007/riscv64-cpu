@@ -15,8 +15,16 @@ void init_mem() {
   IFDEF(CONFIG_MEM_RANDOM, memset(pmem, rand(), CONFIG_MSIZE));
   Log("物理内存区域为 [" FMT_PADDR ", " FMT_PADDR "]", PMEM_LEFT, PMEM_RIGHT);
 }
+//8000effc          ->         0000effc + pmem
+//ffffffff80007ff4  ->ffffffff_00007ff4 + pmem  (pmem最大就是128MB)
 
-uint8_t* guest_to_host(paddr_t paddr) { return pmem + paddr - CONFIG_MBASE; }
+//fetch(pc)--->
+
+
+uint8_t* guest_to_host(paddr_t paddr) { 
+  return pmem + paddr - CONFIG_MBASE; 
+}
+
 static inline word_t host_read(void *addr, int len) {
   switch (len) {
     case 1: return *(uint8_t  *)addr;

@@ -153,7 +153,7 @@ void execute(uint64_t n){
     npc_single_cycle();                             
     update_cpu_state();
     g_nr_guest_inst++;
-    IFDEF(CONFIG_DEBUG, instr_trace(commit.pc, commit.instr));
+    IFDEF(CONFIG_DEBUG, instr_trace_log(commit.pc, commit.instr));
     IFDEF(CONFIG_ITRACE,   instr_itrace(commit.pc , commit.instr));
     IFDEF(CONFIG_DIFFTEST, difftest_step(&commit));  
   }
@@ -163,7 +163,7 @@ void statistic() {
   npc_close_simulation();
   #define NUMBERIC_FMT MUXDEF(CONFIG_TARGET_AM, "%", "%'") PRIu64
   Log("host time spent = " NUMBERIC_FMT " us", g_timer);
-  Log("你的处理器执行了" NUMBERIC_FMT "条指令(包含流水线冲刷等情况)", g_nr_guest_inst);
+  Log("你的处理器执行了" NUMBERIC_FMT "条指令(不含nopc指令)", g_nr_guest_inst);
   Log("你的处理器执行了" NUMBERIC_FMT "个时钟周期", clk_count);
   if (g_timer > 0) {
     Log("你处理器的执行频率是" NUMBERIC_FMT " instr/s", g_nr_guest_inst * 1000000 / g_timer);
