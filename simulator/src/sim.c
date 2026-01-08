@@ -113,6 +113,7 @@ void print_cpu(FILE *out) {
 void npc_init() {
   IFDEF(CONFIG_NPC_OPEN_SIM, npc_open_simulation());  
   npc_reset(1);
+  printf("right\n");
   update_cpu_state();
 //  print_cpu(NULL);
 

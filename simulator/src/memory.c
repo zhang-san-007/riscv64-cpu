@@ -12,13 +12,15 @@ void init_mem() {
   pmem = malloc(CONFIG_MSIZE);
   assert(pmem);
 #endif
-  IFDEF(CONFIG_MEM_RANDOM, memset(pmem, rand(), CONFIG_MSIZE));
+  //rand()
+IFDEF(CONFIG_MEM_RANDOM, memset(pmem, 0, CONFIG_MSIZE));
   Log("物理内存区域为 [" FMT_PADDR ", " FMT_PADDR "]", PMEM_LEFT, PMEM_RIGHT);
 }
 //8000effc          ->         0000effc + pmem
 //ffffffff80007ff4  ->ffffffff_00007ff4 + pmem  (pmem最大就是128MB)
 
 //fetch(pc)--->
+
 
 
 uint8_t* guest_to_host(paddr_t paddr) { 
@@ -80,3 +82,68 @@ void paddr_write(paddr_t addr, int len, word_t data) {
 
 //pmem_read
 //p
+void dump_pmem_4kb() {
+  paddr_t start_addr = CONFIG_MBASE;
+  int total_size = 4096; // 4KB
+  int step = 4;          // 4字节
+
+  printf("--- Memory Dump: Start at " FMT_PADDR " (Total 4KB) ---\n", start_addr);
+
+  for (int i = 0; i < total_size; i += step) {
+    paddr_t curr_addr = start_addr + i;
+    
+    // 每行打印 16 字节（即 4 个 32位字）
+    if (i % 16 == 0) {
+      printf("\n" FMT_PADDR ": ", curr_addr);
+    }
+
+    // 调用你现有的 pmem_read 或 host_read
+    // 注意：如果是 64 位系统，paddr_read 可能返回 64 位，这里强制转为 uint32_t 打印
+    uint32_t data = (uint32_t)pmem_read(curr_addr, step);
+    printf("0x%08x  ", data);
+  }
+  printf("\n--- End of Dump ---\n");
+}
+extern FILE *log_fp;
+bool log_enable();
+
+void dump_pmem_to_log() {
+  if (!log_enable()) return;
+
+  // 定义绿色线条的宏或字符串
+  // \033[1;32m 开启绿色高亮, \033[0m 关闭颜色恢复默认
+  const char *green_line = "\033[1;32m============================================================\033[0m\n";
+  
+  paddr_t start_addr = CONFIG_MBASE;
+  int total_size = 4096; // 4KB
+  int step = 4;
+
+  // 1. 开始处打印绿色线到文件
+  fprintf(log_fp, "%s", green_line);
+  fprintf(log_fp, "--- [Memory Dump Start] Base: " FMT_PADDR ", Size: 4KB ---\n", start_addr);
+
+  for (int i = 0; i < total_size; i += step) {
+    paddr_t curr_addr = start_addr + i;
+
+    if (!in_pmem(curr_addr)) {
+        fprintf(log_fp, "\n[Dump Error]: Address " FMT_PADDR " out of pmem bound.\n", curr_addr);
+        break;
+    }
+
+    if (i % 16 == 0) {
+      fprintf(log_fp, "\n[" FMT_PADDR "]: ", curr_addr);
+    }
+
+    uint32_t data = (uint32_t)pmem_read(curr_addr, step);
+    fprintf(log_fp, "0x%08x ", data);
+
+    if ((i + step) % 64 == 0) {
+      fflush(log_fp);
+    }
+  }
+
+  // 2. 结束处打印绿色线到文件
+  fprintf(log_fp, "\n--- [Memory Dump End] ---\n");
+  fprintf(log_fp, "%s", green_line);
+  fflush(log_fp);
+}

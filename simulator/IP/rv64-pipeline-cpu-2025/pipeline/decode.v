@@ -2,6 +2,7 @@
 module decode(
     input wire clk,                      // 时钟信号
     input wire rst,                      // 复位信号
+//	input wire [63:0]   regD_i_pc,
     input wire [31:0]   regD_i_instr,    // 输入指令
 
 	//execute阶段数据前递
@@ -67,7 +68,7 @@ wire [2:0]  func3   = instr[14:12];
 wire [4:0]  rs1     = instr[19:15];
 wire [4:0]  rs2     = instr[24:20];
 wire [6:0]  func7   = instr[31:25];
-wire [11:0] csrid   = instr[31:20];
+wire [11:0] csr_id   = instr[31:20];
 
 
 //====================================func3=======func7===imm=====================================
@@ -310,7 +311,7 @@ assign decode_o_reg_rs1 		=  rs1;
 assign decode_o_reg_rs2 		=  rs2;
 
 //csr
-assign decode_o_csr_id		=  csrid;
+assign decode_o_csr_id		=  csr_id;
 assign decode_o_csr_wen		=  csr_rw;
 
 //reg

@@ -136,7 +136,7 @@ always @(posedge clk) begin
     if(rst) begin
         mhartid <= 64'd0;
         mtvec   <= 64'd0;
-        mstatus <= 64'd0; //这个设置的可能不对。
+        mstatus <= 64'h0000000a_00000000;
         mie     <= 64'd0;
         mip     <= 64'd0;
         satp    <= 64'd0;

@@ -77,16 +77,25 @@ static const uint32_t img [] = {
 void load_builded_img(){
  memcpy(guest_to_host(RESET_VECTOR), img, sizeof(img));
 }
-
+void dump_pmem_4kb();
+void dump_pmem_to_log();
 void init_simulator(int argc, char **argv){
   parse_args(argc, argv);
   init_rand();
   init_log(log_file);
   init_mem();
+//  dump_pmem_to_log();
+// 打印 60 个字符长的绿色等号线
+
   load_builded_img();
   long img_size = load_img();
   //处理器初始化
+//  dump_pmem_4kb();
+//dump_pmem_to_log();
+  printf("111\n");
+
   npc_init();
+  printf("222\n");
   //difftest初始化
   init_difftest(diff_so_file,img_size, difftest_port);
   init_disasm("riscv64-pc-linux-gnu");
