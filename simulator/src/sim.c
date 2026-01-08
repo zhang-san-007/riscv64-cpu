@@ -49,6 +49,8 @@ void npc_single_cycle() {
   clk_count++;
 }
 void npc_reset(int n) {
+  printf("right\n");
+
   dut.rst = 1;
   while (n -- > 0) npc_single_cycle();
   dut.rst = 0;

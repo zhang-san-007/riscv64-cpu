@@ -12,6 +12,7 @@ import "DPI-C" function int dpi_instr_mem_read (input longint addr);
 
 
 assign fetch_o_pc               =  pc;
+
 assign fetch_o_instr            =  dpi_instr_mem_read(pc);
 
 //assign excption_illegal_instr   =  

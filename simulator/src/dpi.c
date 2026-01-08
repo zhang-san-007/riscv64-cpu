@@ -21,16 +21,11 @@ extern "C" uint32_t dpi_instr_mem_read(uint64_t addr){
 		IFDEF(,Log("[fetch]addr = %lx,intsr = %lx",addr,pmem_read(addr, 4)));
 		return pmem_read(addr, 4);
 	}
-	// else if(addr == 0xffffffff80007ff4) {
-
-	// }
-	// else if(addr >= 0xFFFFFFFF80000000){
-	// 	u64 new_addr = addr - 0xFFFFFFFF80000000;
-	// 	return pmem_read(addr, 4);
-	// }
 	else{
-		printf("访问的地址是%lx，超过物理内存界限\n", addr);
-		return 0xFFFFFFFF;
+
+		npc_close_simulation();
+		Log("[dpi_instr_mem_read]访问的地址是%lx，超过物理内存界限\n", addr);
+		exit(1);
     }
 }
 
