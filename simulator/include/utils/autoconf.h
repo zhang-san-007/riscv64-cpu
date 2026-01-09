@@ -18,3 +18,9 @@
 #define CONFIG_TRACE_START 0
 #define CONFIG_TRACE 1
 #define CONFIG_PMEM_GARRAY 1
+
+
+#define CONFIG_DEBUG_NOE       0
+#define CONFIG_DEBUG_BOOT      1    
+#define CONFIG_DEBUG_RUNTIME   1
+#define CONFIG_DEBG_VERBOSE    1

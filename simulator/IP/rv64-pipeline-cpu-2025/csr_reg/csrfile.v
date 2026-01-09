@@ -102,7 +102,7 @@ wire csr_machine_r =    (csr_rid == `mvendorid)   | (csr_rid == `marchid)     | 
                     | (csr_rid == `minstret)    | (csr_rid == `menvcfg);
 wire csr_supervisor_r = (csr_rid == `sstatus)   | (csr_rid == `sie)     | (csr_rid == `stvec)  | (csr_rid == `scounteren)
                     | (csr_rid == `sscratch)  | (csr_rid == `sepc)    | (csr_rid == `scause) | (csr_rid == `stval)
-                    | (csr_rid == `sip)       | (csr_rid == `satp);
+                    | (csr_rid == `sip)       | (csr_rid == `satp)      | (csr_rid == `stimecmp);
 wire csr_pmp_r =        (csr_rid == `pmpcfg0)  | (csr_rid == `pmpcfg1)  | (csr_rid == `pmpcfg2)  | (csr_rid == `pmpcfg3)
                     | (csr_rid == `pmpaddr0) | (csr_rid == `pmpaddr1) | (csr_rid == `pmpaddr2) | (csr_rid == `pmpaddr3)
                     | (csr_rid == `pmpaddr4) | (csr_rid == `pmpaddr5) | (csr_rid == `pmpaddr6) | (csr_rid == `pmpaddr7)
@@ -118,17 +118,18 @@ wire csr_wen    = wb_i_csr_wen;
 wire [11:0] csr_wid     = wb_i_csr_id;
 wire [63:0] csr_wdata  = wb_i_csr_wdata; 
 
-wire csr_user_w    =    (csr_wid == `cycle)       | (csr_wid == `timer)       | (csr_wid == `instret);
-wire csr_machine_w =    (csr_wid == `mvendorid)   | (csr_wid == `marchid)     | (csr_wid == `mimpid)
-                    | (csr_wid == `mhartid)     | (csr_wid == `mconfigptr)  | (csr_wid == `misa)
-                    | (csr_wid == `mstatus)     | (csr_wid == `medeleg)     | (csr_wid == `mideleg)
-                    | (csr_wid == `mie)         | (csr_wid == `mtvec)       | (csr_wid == `mcounteren)
-                    | (csr_wid == `mscratch)    | (csr_wid == `mepc)        | (csr_wid == `mcause)
-                    | (csr_wid == `mtval)       | (csr_wid == `mip)         | (csr_wid == `mcycle)                 
-                    | (csr_wid == `minstret)    | (csr_wid == `menvcfg);
-wire csr_supervisor_w = (csr_wid == `sstatus)   | (csr_wid == `sie)     | (csr_wid == `stvec)  | (csr_wid == `scounteren)
-                    | (csr_wid == `sscratch)  | (csr_wid == `sepc)    | (csr_wid == `scause) | (csr_wid == `stval)
-                    | (csr_wid == `sip)       | (csr_wid == `satp);
+wire csr_user_w    =      (csr_wid == `cycle)       | (csr_wid == `timer)       | (csr_wid == `instret);
+wire csr_machine_w =      (csr_wid == `mvendorid)   | (csr_wid == `marchid)     | (csr_wid == `mimpid)
+                        | (csr_wid == `mhartid)     | (csr_wid == `mconfigptr)  | (csr_wid == `misa)
+                        | (csr_wid == `mstatus)     | (csr_wid == `medeleg)     | (csr_wid == `mideleg)
+                        | (csr_wid == `mie)         | (csr_wid == `mtvec)       | (csr_wid == `mcounteren)
+                        | (csr_wid == `mscratch)    | (csr_wid == `mepc)        | (csr_wid == `mcause)
+                        | (csr_wid == `mtval)       | (csr_wid == `mip)         | (csr_wid == `mcycle)                 
+                        | (csr_wid == `minstret)    | (csr_wid == `menvcfg);
+
+wire csr_supervisor_w =   (csr_wid == `sstatus)   | (csr_wid == `sie)     | (csr_wid == `stvec)  | (csr_wid == `scounteren)
+                    |     (csr_wid == `sscratch)  | (csr_wid == `sepc)    | (csr_wid == `scause) | (csr_wid == `stval)
+                    |     (csr_wid == `sip)       | (csr_wid == `satp)    | (csr_wid == `stimecmp);
 wire csr_pmp_w =        (csr_wid == `pmpcfg0)  | (csr_wid == `pmpcfg1)  | (csr_wid == `pmpcfg2)  | (csr_wid == `pmpcfg3)
                     | (csr_wid == `pmpaddr0) | (csr_wid == `pmpaddr1) | (csr_wid == `pmpaddr2) | (csr_wid == `pmpaddr3)
                     | (csr_wid == `pmpaddr4) | (csr_wid == `pmpaddr5) | (csr_wid == `pmpaddr6) | (csr_wid == `pmpaddr7)

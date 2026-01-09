@@ -6,21 +6,14 @@
 
 uint8_t pmem[CONFIG_MSIZE] PG_ALIGN = {}; 
 
-
 void init_mem() {
 #if defined(CONFIG_PMEM_MALLOC)
   pmem = malloc(CONFIG_MSIZE);
   assert(pmem);
 #endif
-  //rand()
-IFDEF(CONFIG_MEM_RANDOM, memset(pmem, 0, CONFIG_MSIZE));
+  IFDEF(CONFIG_MEM_RANDOM, memset(pmem, rand(), CONFIG_MSIZE));
   Log("物理内存区域为 [" FMT_PADDR ", " FMT_PADDR "]", PMEM_LEFT, PMEM_RIGHT);
 }
-//8000effc          ->         0000effc + pmem
-//ffffffff80007ff4  ->ffffffff_00007ff4 + pmem  (pmem最大就是128MB)
-
-//fetch(pc)--->
-
 
 
 uint8_t* guest_to_host(paddr_t paddr) { 
@@ -50,6 +43,7 @@ static inline bool in_pmem(paddr_t addr) {
 }
 
 extern CPU_state cpu;
+
 word_t pmem_read(paddr_t addr, int len){
   return host_read(guest_to_host(addr), len);
 }
@@ -80,8 +74,6 @@ void paddr_write(paddr_t addr, int len, word_t data) {
 
 
 
-//pmem_read
-//p
 void dump_pmem_4kb() {
   paddr_t start_addr = CONFIG_MBASE;
   int total_size = 4096; // 4KB

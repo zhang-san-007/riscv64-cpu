@@ -84,16 +84,10 @@ void init_simulator(int argc, char **argv){
   init_rand();
   init_log(log_file);
   init_mem();
-  //  dump_pmem_to_log();
   load_builded_img();
   long img_size = load_img();
-  //处理器初始化
-  //dump_pmem_4kb();
-  //dump_pmem_to_log();
-
   npc_init();
-  printf("222\n");
-  //difftest初始化
+
   init_difftest(diff_so_file,img_size, difftest_port);
   init_disasm("riscv64-pc-linux-gnu");
   welcome();

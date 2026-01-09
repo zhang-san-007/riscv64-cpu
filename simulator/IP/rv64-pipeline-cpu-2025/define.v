@@ -44,7 +44,6 @@
 `define mie         12'h304
 `define mtvec       12'h305
 `define mcounteren  12'h306
-`define menvcfg     12'h30A
 `define mscratch    12'h340
 `define mepc        12'h341
 `define mcause      12'h342
@@ -52,8 +51,11 @@
 `define mip         12'h344
 `define mcycle      12'hB00
 `define minstret    12'hB02
+`define menvcfg     12'h30A
+
 
 // Supervisor Level CSRs
+`define stimecmp    12'h14d
 `define sstatus     12'h100
 `define sie         12'h104
 `define stvec       12'h105
@@ -86,3 +88,4 @@
 `define pmpaddr13   12'h3BD
 `define pmpaddr14   12'h3BE
 `define pmpaddr15   12'h3BF
+

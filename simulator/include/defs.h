@@ -10,19 +10,19 @@ void set_sim_state(int state, vaddr_t pc, int halt_ret);
 
 //sdb.c
 void 		sdb_set_batch_mode();
-void 		sdb_mainloop();
+
 //cpu.c
 void 		cpu_exec(uint64_t n);
-
-//cpu.c
-
 const char* reg_name(int idx);
-
 int 	check_reg_idx(int idx);
 int 	check_csr_idx(int idx);
+void isa_csr_display(CPU_state *, const char *);
+void isa_reg_display(CPU_state *, const char *);
 #define pc_self  (cpu.pc)
 #define gpr(idx) (cpu.gpr[check_reg_idx(idx)])
 #define csr(idx) (cpu.csr[check_csr_idx(idx)])
+
+
 
 
 //init_monitor.c

@@ -6,29 +6,7 @@
 #include <defs.h>
 #include <debug.h>
 #include <cpu.h>
-typedef struct {
-    int id;
-    const char *name;
-} csr_map_t;
-
-// 将你 enum 中定义的 CSR 罗列在此
-static const csr_map_t target_csrs[] = {
-    {0xc00, "cycle"},    {0xc01, "timer"},     {0xc02, "instret"},
-    {0x100, "sstatus"},  {0x104, "sie"},       {0x105, "stvec"},      {0x106, "scounteren"},
-    {0x140, "sscratch"}, {0x141, "sepc"},      {0x142, "scause"},     {0x143, "stval"}, {0x144, "sip"},
-    {0x180, "satp"},
-    {0xf11, "mvendorid"}, {0xf12, "marchid"},  {0xf13, "mimpid"},     {0xf14, "mhartid"}, {0xf15, "mconfigptr"},
-    {0x300, "mstatus"},   {0x301, "misa"},     {0x302, "medeleg"},    {0x303, "mideleg"}, {0x304, "mie"}, {0x305, "mtvec"}, {0x306, "mcounteren"},
-    {0x340, "mscratch"},  {0x341, "mepc"},     {0x342, "mcause"},     {0x343, "mtval"}, {0x344, "mip"},
-    {0xb00, "mcycle"},    {0xb02, "minstret"}, {0x7a0, "tselect"},    {0x7a1, "tdata1"},
-    {0x3a0, "pmpcfg0"},   {0x3a1, "pmpcfg1"},  {0x3a2, "pmpcfg2"},    {0x3a3, "pmpcfg3"},
-    {0x3b0, "pmpaddr0"},  {0x3b1, "pmpaddr1"}, {0x3b2, "pmpaddr2"},   {0x3b3, "pmpaddr3"},
-    {0x3b4, "pmpaddr4"},  {0x3b5, "pmpaddr5"}, {0x3b6, "pmpaddr6"},   {0x3b7, "pmpaddr7"},
-    {0x3b8, "pmpaddr8"},  {0x3b9, "pmpaddr9"}, {0x3ba, "pmpaddr10"},  {0x3bb, "pmpaddr11"},
-    {0x3bc, "pmpaddr12"}, {0x3bd, "pmpaddr13"}, {0x3be, "pmpaddr14"}, {0x3bf, "pmpaddr15"}
-};
-
-#define NR_TARGET_CSR (sizeof(target_csrs) / sizeof(target_csrs[0]))
+#include <decode.h>
 
 void (*ref_difftest_memcpy)(paddr_t addr, void *buf, size_t n, bool direction) = NULL;
 void (*ref_difftest_regcpy)(void *dut, bool direction) = NULL;
@@ -37,21 +15,6 @@ void (*ref_difftest_raise_intr)(uint64_t NO) = NULL;
 #ifdef CONFIG_DIFFTEST
 extern CPU_state cpu;
 extern SIMState sim_state;
-
-//这两个函数暂时没有用到，不管了
-static bool is_skip_ref = false;
-static int skip_dut_nr_inst = 0;
-void difftest_skip_ref() {
-  is_skip_ref = true;
-  skip_dut_nr_inst = 0;
-}
-void difftest_skip_dut(int nr_ref, int nr_dut) {
-  skip_dut_nr_inst += nr_dut;
-  while (nr_ref -- > 0) {
-    ref_difftest_exec(1);
-  }
-}
-
 
 
 void init_difftest(char *ref_so_file, long img_size, int port) {
@@ -84,9 +47,7 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
 
   ref_difftest_init(port); //do nothing
 
-  printf("img_size=%ld\n",img_size);
   printf("RESET_VECTOR=%lx\n", RESET_VECTOR);
-
 
   //执行spike的difftest_memcpy函数，将处理器的内存写入到spike里面
   ref_difftest_memcpy(RESET_VECTOR, guest_to_host(RESET_VECTOR), img_size, DIFFTEST_TO_REF); 
@@ -97,13 +58,14 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
 
 static void display_diff_error(CPU_state *ref, u64 pc, u64 next_pc, const char *msg) {
     printf("\n%-9s\n", ANSI_FMT("DIFFTEST ERROR", ANSI_FG_YELLOW ANSI_BG_RED));         
-//    instr_coverage_display();
-    
-    printf("[NPC] 执行完pc=[0x%016lx]处的指令后出错。错误原因: %s\n", pc, msg);
-    printf("[NPC] PC 状态: [参考 REF.pc]=0x%016lx, [你的 DUT.pc]=0x%016lx\n", ref->pc, next_pc);
     instr_itrace_display();
 
-    // 2. 对比寄存器数据
+printf("[NPC] 执行完 pc=[0x%016lx] 处的指令后出错。错误原因: %s%s%s\n", pc, ANSI_FG_RED, msg, ANSI_NONE);
+    bool pc_mismatch = (ref->pc != next_pc);
+    const char* pc_color = pc_mismatch ? ANSI_FG_RED : "";
+    printf("[NPC] PC 状态: %s%c [参考 REF.pc]=0x%016lx | [你的 DUT.pc]=0x%016lx%s\n", pc_color, pc_mismatch ? '*' : ' ', ref->pc, next_pc, ANSI_NONE);
+
+    
     printf("\n----------- 寄存器状态对比 (REF vs DUT) -----------\n");
     for (int i = 0; i < 32; i++) {
         bool mismatch = (ref->gpr[i] != cpu.gpr[i]);
@@ -113,22 +75,21 @@ static void display_diff_error(CPU_state *ref, u64 pc, u64 next_pc, const char *
                color, mismatch ? '*' : ' ', reg_name(i), ref->gpr[i], reg_name(i), cpu.gpr[i], ANSI_NONE);
     }
 
-
     npc_single_cycle();
     npc_close_simulation();
     Log("[NPC] Difftest 终止，请检查上述差异。\n");
     exit(1);
 }
+
+//对比csr，
 static void checkcsrs(CPU_state *ref, u64 pc, u64 next_pc) {
     for (int i = 0; i < NR_TARGET_CSR; i++) {
-        int id = target_csrs[i].id;
-        const char *name = target_csrs[i].name;
+        int id = csr_map[i].id;
+        const char *name = csr_map[i].name;
+
         if( id == cycle || id==timer || instret) {
             continue;
         }
-        // if (id == mcycle || id == minstret || id == cycle || id == timer || id == instret) {
-        //     continue;
-        // }
         if (ref->csr[id] != cpu.csr[id]) {
             char buf[128];
             snprintf(buf, sizeof(buf), "CSR [%s] (0x%03x) 数值不一致! \t[REF]=0x%016lx, [DUT]=0x%016lx", name, id, ref->csr[id], cpu.csr[id]);
@@ -156,19 +117,8 @@ static void checkregs(CPU_state *ref, u64 pc, u64 next_pc) {
 #include <stdint.h>
 #include <assert.h>
 
-#define GET_OPCODE(i) ((i) & 0x7f)
-#define GET_FUNCT3(i) (((i) >> 12) & 0x7)
-#define GET_RD(i)     (((i) >> 7) & 0x1f)
-#define GET_CSR_ID(i) (((i) >> 20) & 0xfff)  // 指令[31:20] - CSR地址（12位）
 
-
-#define op_load  0b0000011
-#define op_store 0b0100011
-#define op_csr   0b1110011
-#define func3000 0b000
-#define func3001 0b001
-#define func3010 0b010
-
+void isa_reg_display();
 
 void difftest_step(commit_t *commit) {
     CPU_state ref_r;
@@ -177,22 +127,24 @@ void difftest_step(commit_t *commit) {
     u32 opcode = GET_OPCODE(instr);
     u32 funct3 = GET_FUNCT3(instr);
     u32 csr_id = GET_CSR_ID(instr);  // 直接使用宏获取 CSR 
-        
-    //在执行之前，如果是csrrw time这样的指令，直接让ref跳过一次，然后将cpu的值复制给ref
-    if(opcode == op_csr && funct3 == func3010){
-        if(csr_id == timer){
-            printf("我当前执行的指令是instr%0x\n", instr);
-            printf("cpu.s0
-            ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
-            return;
-        }
+    
+    if(instr == 0x0000b117){
+        ref_difftest_exec(1);
+        ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
+
+
     }
 
-    //真正的让ref执行一次
     ref_difftest_exec(1);
+    
+    //dut执行完这条指令之后，直接将寄存器状态拷贝到ref里面，相当于ref也执行了同样的指令。
+    if(opcode == op_csr && funct3 == func3010 && csr_id==timer){
+        cpu.pc = commit->next_pc;
+        ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
+    }
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
 
-    //比对load和store执行完之后的内容是否一致
+
     if (opcode == op_load) {
         int rd = GET_RD(instr);
         int bytes = (1 << (funct3 & 0x3)); 

@@ -10,5 +10,12 @@ typedef struct {
   u64 csr[CSR_NUM];
 } CPU_state;
 
+typedef struct {
+    uint32_t id;
+    const char *name;
+} csr_map_t;
+extern const csr_map_t csr_map[];
+extern const int NR_TARGET_CSR;
+
 
 #endif
