@@ -13,12 +13,17 @@ module execute(
     input wire  [63:0]  regE_i_regdata2,
     input wire  [63:0]  regE_i_imm,
     input wire  [63:0]  regE_i_pc,
-    input wire  [63:0]  regE_i_csr_rdata,
+    input wire  [63:0]  regE_i_csr_rdata1,
+    input wire  [63:0]  regE_i_csr_rdata2,
 
 //output
     output wire [160:0] execute_o_commit_info,
     output wire [63:0]  execute_o_alu_result,
 
+    //mret-pc
+    output wire         execute_o_mret_jump,
+    output wire [63:0]  execute_o_mret_next_pc,
+    //branch-pc
     output wire         execute_o_branch_need_jump,
     output wire [63:0]  execute_o_branch_next_pc
 );
@@ -77,6 +82,8 @@ wire inst_csrrc     = regE_i_csrrw_info[3];
 wire inst_csrrwi    = regE_i_csrrw_info[2];
 wire inst_csrrsi    = regE_i_csrrw_info[1];
 wire inst_csrrci    = regE_i_csrrw_info[0];
+
+wire inst_mret      = regE_i_system_info[0];
 
 
 wire [63:0] alu_src1 = op_alu_reg | op_alu_regw ? regE_i_regdata1    : 

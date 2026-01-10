@@ -31,7 +31,7 @@ module decode(
 	input wire [63:0] 	wb_i_reg_wdata,
 	//wb_csr
 	input wire 			wb_i_csr_wen,
-	input wire [11:0]	wb_i_csr_id,
+	input wire [11:0]	wb_i_csr_wid,
 	input wire [63:0]	wb_i_csr_wdata,
 	
 	//info
@@ -48,13 +48,14 @@ module decode(
     output wire [63:0]  decode_o_regdata1,   
     output wire [63:0]  decode_o_regdata2,   
 	output wire [63:0]  decode_o_imm,
-	output wire [63:0]	decode_o_csr_rdata,
+	output wire [63:0]	decode_o_csr_rdata1,
+	output wire [63:0]  decode_o_csr_rdata2,
 	//rs1
 	output wire [4:0]	decode_o_reg_rs1,
 	output wire [4:0] 	decode_o_reg_rs2,
 
 	//wb_csr
-	output wire [11:0]  decode_o_csr_id,
+	output wire [11:0]  decode_o_csr_wid,
 	output wire 		decode_o_csr_wen,
 	//wb_reg
 	output wire [4:0]	decode_o_reg_rd,
@@ -307,15 +308,17 @@ assign decode_o_imm 	= 	inst_i_type ? inst_i_imm :
 							inst_u_type ? inst_u_imm : 
 							inst_r_type ? inst_r_imm : 64'd0;
 //中间信号
-wire csr_rw				=   inst_csrrw | inst_csrrs | inst_csrrc | inst_csrrwi | inst_csrrsi | inst_csrrci;
 
 //rs1 rs2
 assign decode_o_reg_rs1 		=  rs1; 
 assign decode_o_reg_rs2 		=  rs2;
 
 //csr
-assign decode_o_csr_id		=  csrid;
-assign decode_o_csr_wen		=  csr_rw;
+
+assign decode_o_csr_wid		=  (inst_mret) ? `mstatus : csrid;
+
+wire   csr_rw				=  inst_csrrw | inst_csrrs | inst_csrrc | inst_csrrwi | inst_csrrsi | inst_csrrci;
+assign decode_o_csr_wen		=  (inst_mret) ? 1'b1     : csr_rw;
 
 //reg
 assign decode_o_reg_wen 	= inst_i_type | inst_u_type | inst_r_type | inst_j_type | csr_rw;
@@ -326,8 +329,8 @@ wire [63:0] 	regfile_o_regdata1;
 wire [63:0] 	regfile_o_regdata2;
 
 regfile u_regfile(
-	.clk                	( clk                 ),
-	.rst                	( rst                 ),
+	.clk                	( clk          ),
+	.rst                	( rst          ),
 	.wb_i_reg_rd        	( wb_i_reg_rd         ),
 	.wb_i_reg_wdata     	( wb_i_reg_wdata      ),
 	.wb_i_reg_wen       	( wb_i_reg_wen        ),
@@ -363,7 +366,7 @@ assign decode_o_regdata2 = regE_i_reg_rd != 5'd0 && regE_i_reg_wen && regE_i_reg
 						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs2 && regW_sel_alu_result 	? regW_i_alu_result 	: 
 						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs2 && regW_sel_mem_rdata     ? regW_i_mem_rdata 		: 
 						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs2 && regW_sel_pc			? regW_i_pc + 64'd4     : 
-							regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs2 && regW_sel_pc			? regW_i_csr_rdata     : regfile_o_regdata2; 
+						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs2 && regW_sel_pc			? regW_i_csr_rdata     : regfile_o_regdata2; 
 // outports wire
 wire [63:0] 	csr_o_csr_rdata;
 
@@ -371,21 +374,20 @@ csrfile u_csrfile(
 	.clk             	( clk              ),
 	.rst             	( rst              ),
 	.wb_i_csr_wen    	( wb_i_csr_wen     ),
-	.wb_i_csr_id     	( wb_i_csr_id      ),
+	.wb_i_csr_wid     	( wb_i_csr_wid      ),
 	.wb_i_csr_wdata  	( wb_i_csr_wdata   ),
-	.decode_i_csr_id 	( decode_o_csr_id  ),
-	.csr_o_csr_rdata 	( decode_o_csr_rdata  )
+	.decode_i_csr_rid1 	( decode_o_csr_rid1  ),
+	.decode_i_csr_rid2  (decode_o_csr_rid2),
+	.csr_o_csr_rdata1 	( decode_o_csr_rdata1  ),
+	.csr_o_csr_rdata2	(decode_o_csr_rdata2)
 );
 
-/*
-csr相关的译码
-csr读写
-	csr_id (读写csr的id)
-	csr_wen
-	csr_wdata
-reg读写
-	reg_wdata	= csr_rdata | regdata1;
-	reg_wen	
-	reg_rd		
-*/
 endmodule
+
+
+
+//ecall-
+//ebreak
+//uret
+//sret
+//

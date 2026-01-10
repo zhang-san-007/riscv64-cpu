@@ -7,13 +7,14 @@ module write_back(
        input  wire [63:0]   regW_i_alu_result,
        input  wire [63:0]   regW_i_mem_rdata,
        input  wire [63:0]   regW_i_pc,
-       input wire [63:0]    regW_i_csr_rdata,
+       input wire [63:0]    regW_i_csr_rdata1,
 
        //reg&csr
        input wire           regW_i_reg_wen,
        input wire [4:0]     regW_i_reg_rd, 
+
        input wire           regW_i_csr_wen,
-       input wire [11:0]    regW_i_csr_id,
+       input wire [11:0]    regW_i_csr_wid,
 
        //wb_reg
        output wire [4:0]    wb_o_reg_rd,
@@ -22,7 +23,7 @@ module write_back(
        //wb_csr
        output wire          wb_o_csr_wen,
        output wire [63:0]   wb_o_csr_wdata,
-       output wire [11:0]   wb_o_csr_id
+       output wire [11:0]   wb_o_csr_wid
 );
 
 
@@ -37,13 +38,13 @@ wire op_system       = regW_i_opcode_info[0];
 //reg
 assign wb_o_reg_wdata       = (op_jal || op_jalr) ? regW_i_pc + 64'd4 : 
                               (op_load)           ? regW_i_mem_rdata    : 
-                              (op_csrrw)          ? regW_i_csr_rdata  : regW_i_alu_result;
+                              (op_csrrw)          ? regW_i_csr_rdata1  : regW_i_alu_result;
 assign wb_o_reg_rd          = regW_i_reg_rd;
 assign wb_o_reg_wen         = regW_i_reg_wen;
 
 //csr
 assign wb_o_csr_wen         = regW_i_csr_wen;
-assign wb_o_csr_id          = regW_i_csr_id;
+assign wb_o_csr_wid         = regW_i_csr_wid;
 assign wb_o_csr_wdata       = regW_i_alu_result;
 
 endmodule

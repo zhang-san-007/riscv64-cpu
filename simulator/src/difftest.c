@@ -127,13 +127,17 @@ void difftest_step(commit_t *commit) {
     u32 opcode = GET_OPCODE(instr);
     u32 funct3 = GET_FUNCT3(instr);
     u32 csr_id = GET_CSR_ID(instr);  // 直接使用宏获取 CSR 
-    
-    if(instr == 0x0000b117){
-        ref_difftest_exec(1);
-        ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
 
 
-    }
+    // if(instr == 0x0000b117){
+    //     ref_difftest_exec(1);
+    //     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
+    //     printf("right\n");        
+    //     isa_reg_display(&ref_r, "spike");
+    //     isa_csr_display(&ref_r, "spike");
+    //     exit(1);
+
+    // }
 
     ref_difftest_exec(1);
     

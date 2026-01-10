@@ -24,6 +24,7 @@ pc u_pc(
 	.regF_bubble                	( regF_bubble                 ),
 	.execute_i_branch_next_pc   	( execute_o_branch_next_pc    ),
 	.execute_i_branch_need_jump 	( execute_o_branch_need_jump  ),
+	.execute_i_mret_next_pc     	( execute_o_mret_next_pc      ),
 	.fetch_i_next_pc            	( fetch_o_next_pc             ),
 	.pc                         	( pc                          )
 );
@@ -69,10 +70,12 @@ wire [6:0]  	decode_o_system_info;
 wire [63:0] 	decode_o_regdata1;
 wire [63:0] 	decode_o_regdata2;
 wire [63:0] 	decode_o_imm;
-wire [63:0] 	decode_o_csr_rdata;
+wire [63:0] 	decode_o_csr_rdata1;
+wire [63:0] 	decode_o_csr_rdata2;
 wire [4:0]  	decode_o_reg_rs1;
 wire [4:0]  	decode_o_reg_rs2;
-wire [11:0] 	decode_o_csr_id;
+wire [11:0] 	decode_o_csr_rid1;
+wire [11:0] 	decode_o_csr_rid2;
 wire        	decode_o_csr_wen;
 wire [4:0]  	decode_o_reg_rd;
 wire        	decode_o_reg_wen;
@@ -80,7 +83,7 @@ wire        	decode_o_reg_wen;
 decode u_decode(
 	.clk                      	( clk                       ),
 	.rst                      	( rst                       ),
-	.regD_i_pc					(regD_o_pc),
+	.regD_i_pc                	( regD_o_pc                 ),
 	.regD_i_instr             	( regD_o_instr              ),
 	.execute_i_alu_result     	( execute_o_alu_result      ),
 	.regE_i_reg_rd            	( regE_o_reg_rd             ),
@@ -94,14 +97,14 @@ decode u_decode(
 	.regW_i_pc                	( regW_o_pc                 ),
 	.regW_i_alu_result        	( regW_o_alu_result         ),
 	.regW_i_mem_rdata         	( regW_o_mem_rdata          ),
-	.regW_i_csr_rdata			(regW_o_csr_rdata),
+	.regW_i_csr_rdata         	( regW_o_csr_rdata          ),
 	.regW_i_reg_rd            	( regW_o_reg_rd             ),
 	.regW_i_reg_wen           	( regW_o_reg_wen            ),
 	.wb_i_reg_wen             	( wb_o_reg_wen              ),
 	.wb_i_reg_rd              	( wb_o_reg_rd               ),
 	.wb_i_reg_wdata           	( wb_o_reg_wdata            ),
 	.wb_i_csr_wen             	( wb_o_csr_wen              ),
-	.wb_i_csr_id              	( wb_o_csr_id               ),
+	.wb_i_csr_wid             	( wb_o_csr_wid              ),
 	.wb_i_csr_wdata           	( wb_o_csr_wdata            ),
 	.decode_o_alu_info        	( decode_o_alu_info         ),
 	.decode_o_opcode_info     	( decode_o_opcode_info      ),
@@ -112,23 +115,22 @@ decode u_decode(
 	.decode_o_regdata1        	( decode_o_regdata1         ),
 	.decode_o_regdata2        	( decode_o_regdata2         ),
 	.decode_o_imm             	( decode_o_imm              ),
-	.decode_o_csr_rdata       	( decode_o_csr_rdata        ),
+	.decode_o_csr_rdata1      	( decode_o_csr_rdata1       ),
+	.decode_o_csr_rdata2      	( decode_o_csr_rdata2       ),
 	.decode_o_reg_rs1         	( decode_o_reg_rs1          ),
 	.decode_o_reg_rs2         	( decode_o_reg_rs2          ),
-	.decode_o_csr_id          	( decode_o_csr_id           ),
+	.decode_o_csr_rid1        	( decode_o_csr_rid1         ),
+	.decode_o_csr_rid2        	( decode_o_csr_rid2         ),
 	.decode_o_csr_wen         	( decode_o_csr_wen          ),
 	.decode_o_reg_rd          	( decode_o_reg_rd           ),
 	.decode_o_reg_wen         	( decode_o_reg_wen          )
 );
-
-
 // outports wire
 wire [63:0]  	regE_o_regdata1;
 wire [63:0]  	regE_o_regdata2;
 wire [63:0]  	regE_o_imm;
 wire [63:0]  	regE_o_pc;
-wire [4:0]   	regE_o_reg_rd;
-wire         	regE_o_reg_wen;
+wire [63:0]  	regE_o_csr_rdata;
 wire [27:0]  	regE_o_alu_info;
 wire [10:0]  	regE_o_load_store_info;
 wire [12:0]  	regE_o_opcode_info;
@@ -136,8 +138,9 @@ wire [5:0]   	regE_o_branch_info;
 wire [5:0]   	regE_o_csrrw_info;
 wire [6:0]   	regE_o_system_info;
 wire [11:0]  	regE_o_csr_id;
-wire [63:0]  	regE_o_csr_rdata;
 wire         	regE_o_csr_wen;
+wire [4:0]   	regE_o_reg_rd;
+wire         	regE_o_reg_wen;
 wire [160:0] 	regE_o_commit_info;
 
 regE u_regE(
@@ -149,6 +152,7 @@ regE u_regE(
 	.decode_i_regdata1        	( decode_o_regdata1         ),
 	.decode_i_regdata2        	( decode_o_regdata2         ),
 	.regD_i_pc                	( regD_o_pc                 ),
+	.decode_i_csr_rdata       	( decode_o_csr_rdata        ),
 	.decode_i_alu_info        	( decode_o_alu_info         ),
 	.decode_i_load_store_info 	( decode_o_load_store_info  ),
 	.decode_i_opcode_info     	( decode_o_opcode_info      ),
@@ -158,15 +162,13 @@ regE u_regE(
 	.decode_i_reg_rd          	( decode_o_reg_rd           ),
 	.decode_i_reg_wen         	( decode_o_reg_wen          ),
 	.decode_i_csr_id          	( decode_o_csr_id           ),
-	.decode_i_csr_rdata       	( decode_o_csr_rdata        ),
 	.decode_i_csr_wen         	( decode_o_csr_wen          ),
 	.regD_i_commit_info       	( regD_o_commit_info        ),
 	.regE_o_regdata1          	( regE_o_regdata1           ),
 	.regE_o_regdata2          	( regE_o_regdata2           ),
 	.regE_o_imm               	( regE_o_imm                ),
 	.regE_o_pc                	( regE_o_pc                 ),
-	.regE_o_reg_rd            	( regE_o_reg_rd             ),
-	.regE_o_reg_wen           	( regE_o_reg_wen            ),
+	.regE_o_csr_rdata         	( regE_o_csr_rdata          ),
 	.regE_o_alu_info          	( regE_o_alu_info           ),
 	.regE_o_load_store_info   	( regE_o_load_store_info    ),
 	.regE_o_opcode_info       	( regE_o_opcode_info        ),
@@ -174,8 +176,9 @@ regE u_regE(
 	.regE_o_csrrw_info        	( regE_o_csrrw_info         ),
 	.regE_o_system_info       	( regE_o_system_info        ),
 	.regE_o_csr_id            	( regE_o_csr_id             ),
-	.regE_o_csr_rdata         	( regE_o_csr_rdata          ),
 	.regE_o_csr_wen           	( regE_o_csr_wen            ),
+	.regE_o_reg_rd            	( regE_o_reg_rd             ),
+	.regE_o_reg_wen           	( regE_o_reg_wen            ),
 	.regE_o_commit_info       	( regE_o_commit_info        )
 );
 // outports wire
@@ -202,8 +205,6 @@ execute u_execute(
 	.execute_o_branch_need_jump 	( execute_o_branch_need_jump  ),
 	.execute_o_branch_next_pc   	( execute_o_branch_next_pc    )
 );
-
-
 // outports wire
 wire [10:0]  	regM_o_load_store_info;
 wire [12:0]  	regM_o_opcode_info;
@@ -212,10 +213,10 @@ wire [6:0]   	regM_o_system_info;
 wire [63:0]  	regM_o_regdata2;
 wire [63:0]  	regM_o_alu_result;
 wire [63:0]  	regM_o_pc;
+wire [63:0]  	regM_o_csr_rdata;
 wire [4:0]   	regM_o_reg_rd;
 wire         	regM_o_reg_wen;
 wire [11:0]  	regM_o_csr_id;
-wire [63:0]  	regM_o_csr_rdata;
 wire         	regM_o_csr_wen;
 wire [160:0] 	regM_o_commit_info;
 
@@ -231,10 +232,10 @@ regM u_regM(
 	.regE_i_pc              	( regE_o_pc               ),
 	.regE_i_regdata2        	( regE_o_regdata2         ),
 	.execute_i_alu_result   	( execute_o_alu_result    ),
+	.regE_i_csr_rdata       	( regE_o_csr_rdata        ),
 	.regE_i_reg_rd          	( regE_o_reg_rd           ),
 	.regE_i_reg_wen         	( regE_o_reg_wen          ),
 	.regE_i_csr_id          	( regE_o_csr_id           ),
-	.regE_i_csr_rdata       	( regE_o_csr_rdata        ),
 	.regE_i_csr_wen         	( regE_o_csr_wen          ),
 	.execute_i_commit_info  	( execute_o_commit_info   ),
 	.regM_o_load_store_info 	( regM_o_load_store_info  ),
@@ -244,10 +245,10 @@ regM u_regM(
 	.regM_o_regdata2        	( regM_o_regdata2         ),
 	.regM_o_alu_result      	( regM_o_alu_result       ),
 	.regM_o_pc              	( regM_o_pc               ),
+	.regM_o_csr_rdata       	( regM_o_csr_rdata        ),
 	.regM_o_reg_rd          	( regM_o_reg_rd           ),
 	.regM_o_reg_wen         	( regM_o_reg_wen          ),
 	.regM_o_csr_id          	( regM_o_csr_id           ),
-	.regM_o_csr_rdata       	( regM_o_csr_rdata        ),
 	.regM_o_csr_wen         	( regM_o_csr_wen          ),
 	.regM_o_commit_info     	( regM_o_commit_info      )
 );
@@ -309,79 +310,31 @@ regW u_regW(
 	.regW_o_csr_wen     	( regW_o_csr_wen      ),
 	.regW_o_commit_info 	( regW_o_commit_info  )
 );
+
 // outports wire
-wire [4:0]  	wb_o_reg_rd;
-wire [63:0] 	wb_o_reg_wdata;
-wire        	wb_o_reg_wen;
-wire        	wb_o_csr_wen;
-wire [63:0] 	wb_o_csr_wdata;
-wire [11:0] 	wb_o_csr_id;
-
-write_back u_write_back(
-	.regW_i_opcode_info 	( regW_o_opcode_info  ),
-	.regW_i_csrrw_info  	( regW_o_csrrw_info   ),
-	.regW_i_system_info 	( regW_o_system_info  ),
-	.regW_i_alu_result  	( regW_o_alu_result   ),
-	.regW_i_mem_rdata   	( regW_o_mem_rdata    ),
-	.regW_i_pc          	( regW_o_pc           ),
-	.regW_i_csr_rdata   	( regW_o_csr_rdata    ),
-	.regW_i_reg_wen     	( regW_o_reg_wen      ),
-	.regW_i_reg_rd      	( regW_o_reg_rd       ),
-	.regW_i_csr_wen     	( regW_o_csr_wen      ),
-	.regW_i_csr_id      	( regW_o_csr_id       ),
-	.wb_o_reg_rd        	( wb_o_reg_rd         ),
-	.wb_o_reg_wdata     	( wb_o_reg_wdata      ),
-	.wb_o_reg_wen       	( wb_o_reg_wen        ),
-	.wb_o_csr_wen       	( wb_o_csr_wen        ),
-	.wb_o_csr_wdata     	( wb_o_csr_wdata      ),
-	.wb_o_csr_id        	( wb_o_csr_id         )
-);
-// outports wire
-wire        	regF_stall;
-wire        	regD_stall;
-wire        	regE_stall;
-wire        	regM_stall;
-wire        	regW_stall;
-wire        	regF_bubble;
-wire        	regD_bubble;
-wire        	regE_bubble;
-wire        	regM_bubble;
-wire        	regW_bubble;
-
-ctrl u_ctrl(
-	.execute_i_branch_need_jump 	( execute_o_branch_need_jump  ),
-	.regE_i_opcode_info         	( regE_o_opcode_info          ),
-	.regE_i_reg_rd              	( regE_o_reg_rd               ),
-	.decode_i_reg_rs1           	( decode_o_reg_rs1            ),
-	.decode_i_reg_rs2           	( decode_o_reg_rs2            ),
-	.regF_stall                 	( regF_stall                  ),
-	.regD_stall                 	( regD_stall                  ),
-	.regE_stall                 	( regE_stall                  ),
-	.regM_stall                 	( regM_stall                  ),
-	.regW_stall                 	( regW_stall                  ),
-	.regF_bubble                	( regF_bubble                 ),
-	.regD_bubble                	( regD_bubble                 ),
-	.regE_bubble                	( regE_bubble                 ),
-	.regM_bubble                	( regM_bubble                 ),
-	.regW_bubble                	( regW_bubble                 )
-);
-// outports wire
-
-
+wire [63:0]  	commit_o_mem_rdata;
+wire [63:0]  	commit_o_mem_wdata;
+wire [63:0]  	commit_o_mem_addr;
+wire         	commit_o_commit;
+wire [31:0]  	commit_o_instr;
+wire [63:0]  	commit_o_pc;
+wire [63:0]  	commit_o_next_pc;
 
 commit u_commit(
-	.regW_i_commit_info 	( regW_o_commit_info  	),
-	.regW_i_regdata2    	( regW_o_regdata2     	),
-	.regW_i_mem_rdata   	( regW_o_mem_rdata    	),
-	.regW_i_alu_result  	( regW_o_alu_result   	),
-	.commit_o_mem_rdata 	( commit_mem_rdata  	),
-	.commit_o_mem_wdata 	( commit_mem_wdata  	),
-	.commit_o_mem_addr  	( commit_mem_addr   	),
-	.commit_o_commit    	( commit     			),
-	.commit_o_instr     	( commit_instr      	),
-	.commit_o_pc        	( commit_pc         	),
-	.commit_o_next_pc   	( commit_next_pc    	)
+	.regW_i_commit_info 	( regW_o_commit_info  ),
+	.regW_i_regdata2    	( regW_o_regdata2     ),
+	.regW_i_mem_rdata   	( regW_o_mem_rdata    ),
+	.regW_i_alu_result  	( regW_o_alu_result   ),
+	.commit_o_mem_rdata 	( commit_o_mem_rdata  ),
+	.commit_o_mem_wdata 	( commit_o_mem_wdata  ),
+	.commit_o_mem_addr  	( commit_o_mem_addr   ),
+	.commit_o_commit    	( commit_o_commit     ),
+	.commit_o_instr     	( commit_o_instr      ),
+	.commit_o_pc        	( commit_o_pc         ),
+	.commit_o_next_pc   	( commit_o_next_pc    )
 );
+
+
 assign cur_pc = pc;
 
 endmodule

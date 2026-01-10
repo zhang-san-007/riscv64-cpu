@@ -1,18 +1,20 @@
 module csrfile(
     input clk,
     input rst,
+    input wire  [6 :0] wb_i_system_info,
     //write
     input wire         wb_i_csr_wen,
-    input wire  [11:0] wb_i_csr_id,
+    input wire  [11:0] wb_i_csr_wid,
     input wire  [63:0] wb_i_csr_wdata,
-
     //read
-    input  wire [11:0] decode_i_csr_id,
-    output wire [63:0] csr_o_csr_rdata
+    input  wire [11:0] decode_i_csr_rid1,
+    input  wire [11:0] decode_i_csr_rid2,
+    output wire [63:0] csr_o_csr_rdata1,
+    output wire [63:0] csr_o_csr_rdata2
 ); 
 reg [63:0] csrfile[4096];
+reg [ 1:0] cpu_mode;
 
-//csr data
 
 // ==================== 性能计数器 ====================
 wire [63:0] cycle      = csrfile[`cycle];      // 12'hC00 - 时钟周期计数器
@@ -90,52 +92,35 @@ initial begin
 end
 
 
-//csr read
-wire [11:0] csr_rid     = decode_i_csr_id;
-wire csr_user_r    =    (csr_rid == `cycle)       | (csr_rid == `timer)       | (csr_rid == `instret);
-wire csr_machine_r =    (csr_rid == `mvendorid)   | (csr_rid == `marchid)     | (csr_rid == `mimpid)
-                    | (csr_rid == `mhartid)     | (csr_rid == `mconfigptr)  | (csr_rid == `misa)
-                    | (csr_rid == `mstatus)     | (csr_rid == `medeleg)     | (csr_rid == `mideleg)
-                    | (csr_rid == `mie)         | (csr_rid == `mtvec)       | (csr_rid == `mcounteren)
-                    | (csr_rid == `mscratch)    | (csr_rid == `mepc)        | (csr_rid == `mcause)
-                    | (csr_rid == `mtval)       | (csr_rid == `mip)         | (csr_rid == `mcycle)                 
-                    | (csr_rid == `minstret)    | (csr_rid == `menvcfg);
-wire csr_supervisor_r = (csr_rid == `sstatus)   | (csr_rid == `sie)     | (csr_rid == `stvec)  | (csr_rid == `scounteren)
-                    | (csr_rid == `sscratch)  | (csr_rid == `sepc)    | (csr_rid == `scause) | (csr_rid == `stval)
-                    | (csr_rid == `sip)       | (csr_rid == `satp)      | (csr_rid == `stimecmp);
-wire csr_pmp_r =        (csr_rid == `pmpcfg0)  | (csr_rid == `pmpcfg1)  | (csr_rid == `pmpcfg2)  | (csr_rid == `pmpcfg3)
-                    | (csr_rid == `pmpaddr0) | (csr_rid == `pmpaddr1) | (csr_rid == `pmpaddr2) | (csr_rid == `pmpaddr3)
-                    | (csr_rid == `pmpaddr4) | (csr_rid == `pmpaddr5) | (csr_rid == `pmpaddr6) | (csr_rid == `pmpaddr7)
-                    | (csr_rid == `pmpaddr8) | (csr_rid == `pmpaddr9) | (csr_rid == `pmpaddr10)| (csr_rid == `pmpaddr11)
-                    | (csr_rid == `pmpaddr12)| (csr_rid == `pmpaddr13)| (csr_rid == `pmpaddr14)| (csr_rid == `pmpaddr15);
-wire right_csr_rid = csr_user_r | csr_machine_r | csr_supervisor_r | csr_pmp_r;
+//--------------------------csr read-----begin---------------------------
+wire [11:0] csr_rid1 = decode_i_csr_rid1;
+wire [11:0] csr_rid2 = decode_i_csr_rid2;
+wire        right_csr_rid1;
+wire        right_csr_rid2;
 
-assign csr_o_csr_rdata =  right_csr_rid ? csrfile[csr_rid] : 64'd0;  
+check_csr_rid u_check_csr_rid(
+    .csr_rid1(decode_i_csr_rid1),
+    .csr_rid2(decode_i_csr_rid2),
+    .right_csr_rid1(right_csr_rid1),
+    .right_csr_rid2(right_csr_rid2)
+);
 
 
-//csr write
-wire csr_wen    = wb_i_csr_wen;
-wire [11:0] csr_wid     = wb_i_csr_id;
-wire [63:0] csr_wdata  = wb_i_csr_wdata; 
+assign csr_o_csr_rdata1 =  right_csr_rid1 ? csrfile[csr_rid1] : 64'hFFFF_FFFF_FFFF_FFFF;  
+assign csr_o_csr_rdata2 =  right_csr_rid2 ? csrfile[csr_rid2] : 64'hFFFF_FFFF_FFFF_FFFF;
+//--------------------------csr read-----end---------------------------
 
-wire csr_user_w    =      (csr_wid == `cycle)       | (csr_wid == `timer)       | (csr_wid == `instret);
-wire csr_machine_w =      (csr_wid == `mvendorid)   | (csr_wid == `marchid)     | (csr_wid == `mimpid)
-                        | (csr_wid == `mhartid)     | (csr_wid == `mconfigptr)  | (csr_wid == `misa)
-                        | (csr_wid == `mstatus)     | (csr_wid == `medeleg)     | (csr_wid == `mideleg)
-                        | (csr_wid == `mie)         | (csr_wid == `mtvec)       | (csr_wid == `mcounteren)
-                        | (csr_wid == `mscratch)    | (csr_wid == `mepc)        | (csr_wid == `mcause)
-                        | (csr_wid == `mtval)       | (csr_wid == `mip)         | (csr_wid == `mcycle)                 
-                        | (csr_wid == `minstret)    | (csr_wid == `menvcfg);
 
-wire csr_supervisor_w =   (csr_wid == `sstatus)   | (csr_wid == `sie)     | (csr_wid == `stvec)  | (csr_wid == `scounteren)
-                    |     (csr_wid == `sscratch)  | (csr_wid == `sepc)    | (csr_wid == `scause) | (csr_wid == `stval)
-                    |     (csr_wid == `sip)       | (csr_wid == `satp)    | (csr_wid == `stimecmp);
-wire csr_pmp_w =        (csr_wid == `pmpcfg0)  | (csr_wid == `pmpcfg1)  | (csr_wid == `pmpcfg2)  | (csr_wid == `pmpcfg3)
-                    | (csr_wid == `pmpaddr0) | (csr_wid == `pmpaddr1) | (csr_wid == `pmpaddr2) | (csr_wid == `pmpaddr3)
-                    | (csr_wid == `pmpaddr4) | (csr_wid == `pmpaddr5) | (csr_wid == `pmpaddr6) | (csr_wid == `pmpaddr7)
-                    | (csr_wid == `pmpaddr8) | (csr_wid == `pmpaddr9) | (csr_wid == `pmpaddr10)| (csr_wid == `pmpaddr11)
-                    | (csr_wid == `pmpaddr12)| (csr_wid == `pmpaddr13)| (csr_wid == `pmpaddr14)| (csr_wid == `pmpaddr15);
-wire right_csr_wid = csr_user_w | csr_machine_w | csr_supervisor_w | csr_pmp_w;
+//--------------------------csr write-----begin---------------------------
+wire        csr_wen             = wb_i_csr_wen;
+wire [11:0] csr_wid             = wb_i_csr_wid;
+wire [63:0] csr_wdata           = wb_i_csr_wdata; 
+wire        right_csr_wid;
+check_csr_wid u_check_csr_wid(
+    .csr_wid(csr_wid),
+    .right_csr_wid(right_csr_wid)
+);
+//wire inst_mret  = 
 always @(posedge clk) begin
     if(rst) begin
         csrfile[`mhartid] <= 64'd0;
@@ -147,12 +132,20 @@ always @(posedge clk) begin
         csrfile[`medeleg] <= 64'd0;
         csrfile[`mideleg] <= 64'd0;
     end
+
     else if(csr_wen && right_csr_wid) begin
         csrfile[csr_wid] <= csr_wdata;
     end
+    else if(inst_mret) begin
+        // mode <= csr_wdata.MPP;
+        // csrfile[`mstatus].MIE  <= csr_wdata.MPIE;
+        // csrfile[`mstatus].MPIE <= 1'b1;
+        // csrfile[`mstatue].MPP  <= 0; 
+    end
 end
+//--------------------------csr write-----end---------------------------
                   
-//timer
+//--------------------------csr timer-----begin---------------------------
 always @(posedge clk) begin
     if(rst) begin
         csrfile[`timer] <= 64'd0;
@@ -161,6 +154,7 @@ always @(posedge clk) begin
         csrfile[`timer] <= csrfile[`timer]  + 1;
     end
 end
+//--------------------------csr timer-----end---------------------------
 
 
 // // 按照 RISC-V 典型的异常优先级排序实现
@@ -192,5 +186,12 @@ end
 
 
 
-
 endmodule
+
+// //mret
+// //
+// CSRs[mstatus].MPP
+
+// CSRs[mstatus].MIE =CSRs[mstatus].MPIE
+// CSRs[mstatus].MPIE=1
+// CSRs[mstatus].MPP=0
