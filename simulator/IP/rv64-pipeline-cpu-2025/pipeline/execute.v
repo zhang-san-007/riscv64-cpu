@@ -1,12 +1,13 @@
 module execute(
     input wire  [160:0] regE_i_commit_info,
     //info
-    input wire  [12:0]  regE_i_opcode_info,
+    input wire  [13:0]  regE_i_opcode_info,
     input wire  [5:0]   regE_i_branch_info,
     input wire  [10:0]  regE_i_load_store_info,
     input wire  [27:0]  regE_i_alu_info,
     input wire  [5:0]   regE_i_csrrw_info,
     input wire  [6:0]   regE_i_system_info,
+    input wire  [19:0]   regE_i_amo_info,
 
     //data
     input wire  [63:0]  regE_i_regdata1,
@@ -28,6 +29,7 @@ module execute(
     output wire [160:0] execute_o_commit_info
 );
 
+wire op_amo         = regE_i_opcode_info[13];
 wire op_csrrw       = regE_i_opcode_info[12];
 wire op_lui         = regE_i_opcode_info[11];
 wire op_auipc       = regE_i_opcode_info[10];
@@ -90,6 +92,9 @@ wire inst_sret          =   regE_i_system_info[3];
 wire inst_mret          =   regE_i_system_info[2];
 wire inst_wif           =   regE_i_system_info[1];
 wire inst_sfence_vma    =   regE_i_system_info[0];
+
+
+
 
 
 wire [63:0] alu_src1 = op_alu_reg | op_alu_regw ? regE_i_regdata1    : 

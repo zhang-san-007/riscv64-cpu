@@ -1,18 +1,52 @@
 module memory(
     input wire clk,
     input wire rst,
+    input wire  [19:0]   regM_i_amo_info,
     input wire  [10:0]   regM_i_load_store_info,
     input wire  [63:0]   regM_i_alu_result,
     input wire  [63:0]   regM_i_regdata2,
+    input wire  [63:0]   regM_i_regdata1,
     output wire [63:0]   memory_o_mem_rdata
 );
-
 
 import "DPI-C" function void    dpi_mem_write(input longint addr, input longint data, int len);
 import "DPI-C" function longint dpi_mem_read (input longint addr, input int len);
 
-wire [63:0] mem_addr  = regM_i_alu_result;
+wire inst_amoswapw = regM_i_amo_info[17];
+
+// assign decode_o_amo_info = {
+// 	inst_lrw		,	//19
+// 	inst_scw	  	,	//18
+// 	inst_amoswapw	,	//17
+// 	inst_amoaddw	,	//16
+// 	inst_amoxorw	,	//15
+// 	inst_amoorw		,	//14
+// 	inst_amominw	,	//13
+// 	inst_amomaxw	,	//12
+// 	inst_amominuw	,	//11
+// 	inst_amomaxuw	,	//10
+// 	inst_lrd		,	//9
+// 	inst_scd		,	//8
+// 	inst_amoswapd	,	//7
+// 	inst_amoaddd	,	//6
+// 	inst_amoxord	,	//5
+// 	inst_amoord		,	//4
+// 	inst_amomind	,	//3
+// 	inst_amomaxd	,	//2
+// 	inst_amominud	,	//1
+// 	inst_amomaxud		//0
+// };
+
+wire [63:0] mem_addr  = (inst_amoswapw) ? regM_i_regdata1 : regM_i_alu_result;
 wire [63:0] mem_wdata = regM_i_regdata2;
+
+
+
+
+// regdata1作为内存地址
+// 1. 把内存地址里面的读出来的数据rd
+// 2. 把regdata2写入该地址里面去
+
 
 wire inst_lb    =   regM_i_load_store_info[10];
 wire inst_lh    =   regM_i_load_store_info[9 ];
@@ -39,13 +73,15 @@ always @(*) begin
         mem_rdata = 64'd0;
     end
 end
-assign memory_o_mem_rdata  = (inst_lb)  ?     { {56{mem_rdata[7]}},    mem_rdata[7 :0]}   :
-                             (inst_lh)  ?     { {48{mem_rdata[15]}},   mem_rdata[15:0]}   :  
-                             (inst_lw)  ?     { {32{mem_rdata[31]}},   mem_rdata[31:0]}   :
-                             (inst_ld)  ?     {                        mem_rdata[63:0]}   :
-                             (inst_lbu) ?     { 56'd0,                 mem_rdata[7 :0]}   :
-                             (inst_lhu) ?     { 48'd0,                 mem_rdata[15:0]}   :
-                             (inst_lwu) ?     { 32'd0,                 mem_rdata[31:0]}   : 64'd0;
+assign memory_o_mem_rdata  = (inst_lb)          ?     { {56{mem_rdata[7]}},    mem_rdata[7 :0]}   :
+                             (inst_lh)          ?     { {48{mem_rdata[15]}},   mem_rdata[15:0]}   :  
+                             (inst_lw)          ?     { {32{mem_rdata[31]}},   mem_rdata[31:0]}   :
+                             (inst_ld)          ?     {                        mem_rdata[63:0]}   :
+                             (inst_lbu)         ?     { 56'd0,                 mem_rdata[7 :0]}   :
+                             (inst_lhu)         ?     { 48'd0,                 mem_rdata[15:0]}   :
+                             (inst_lwu)         ?     { 32'd0,                 mem_rdata[31:0]}   : 
+                             (inst_amoswapw)    ?     { {32{mem_rdata[31]}},   mem_rdata[31:0]}   : 64'd0;
+                             
 
 //要写入的数据
 always @(posedge clk) begin
@@ -60,6 +96,9 @@ always @(posedge clk) begin
 	end
     else if(inst_sd) begin
         dpi_mem_write(mem_addr, mem_wdata, 8);		
+    end
+    else if(inst_amoswapw) begin
+        dpi_mem_write(mem_addr, mem_wdata, 4);
     end
 end
 endmodule

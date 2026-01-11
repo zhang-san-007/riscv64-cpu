@@ -10,13 +10,13 @@ module decode(
 	input wire [4:0] 	regE_i_reg_rd,
 	input wire 			regE_i_reg_wen,
 	//memory数据前递
-	input wire [12:0] 	regM_i_opcode_info,
+	input wire [13:0] 	regM_i_opcode_info,
 	input wire [63:0] 	regM_i_alu_result,
 	input wire [63:0]	memory_i_mem_rdata,
 	input wire  [4:0]	regM_i_reg_rd,
 	input wire 			regM_i_reg_wen,
 	//wb数据前递
-	input wire [12:0]	regW_i_opcode_info,
+	input wire [13:0]	regW_i_opcode_info,
 	input wire [63:0]	regW_i_pc,
 	input wire [63:0]   regW_i_alu_result,
 	input wire [63:0]	regW_i_mem_rdata,
@@ -36,11 +36,12 @@ module decode(
 	
 	//info
 	output wire [27:0]  decode_o_alu_info,
-	output wire [12:0]	decode_o_opcode_info,
+	output wire [13:0]	decode_o_opcode_info,
 	output wire [5 :0]	decode_o_branch_info,
 	output wire [10:0]  decode_o_load_store_info,
 	output wire [5 :0]	decode_o_csrrw_info,
 	output wire [6 :0]	decode_o_system_info,
+	output wire [19 :0]	decode_o_amo_info,
 
 
 
@@ -62,15 +63,17 @@ module decode(
 );
 
 
-wire [31:0] instr   = regD_i_instr;
-wire [6:0]  opcode  = instr[6:0];
-wire [4:0]	rd 	    = instr[11:7];
-wire [2:0]  func3   = instr[14:12]; 
-wire [4:0]  rs1     = instr[19:15];
-wire [4:0]  rs2     = instr[24:20];
-wire [6:0]  func7   = instr[31:25];
-wire [11:0] csr_id   = instr[31:20];
-
+wire [31:0] instr   	= regD_i_instr;
+wire [6:0]  opcode  	= instr[6:0];
+wire [4:0]	rd 	    	= instr[11:7];
+wire [2:0]  func3   	= instr[14:12]; 
+wire [4:0]  rs1     	= instr[19:15];
+wire [4:0]  rs2     	= instr[24:20];
+wire [6:0]  func7  	 	= instr[31:25];
+wire [11:0] csr_id  	= instr[31:20];
+wire [4 :0] amo_func5 	= instr[31:27];
+wire 		amo_aq		= instr[26];
+wire 		amo_rl		= instr[25];
 
 //====================================func3=======func7===imm=====================================
 wire func3_000 					= (func3 == 3'b000);
@@ -84,6 +87,17 @@ wire func3_111					= (func3 == 3'b111);
 wire func7_0000000 				= (func7 == 7'b0000000);
 wire func7_0100000              = (func7 == 7'b0100000);
 wire func7_0000001				= (func7 == 7'b0000001);
+wire amo_op_add   			= (amo_func5 == 5'b00000);
+wire amo_op_swap  			= (amo_func5 == 5'b00001);
+wire amo_op_lr    			= (amo_func5 == 5'b00010);
+wire amo_op_sc   			= (amo_func5 == 5'b00011);
+wire amo_op_xor   			= (amo_func5 == 5'b00100);
+wire amo_op_or    			= (amo_func5 == 5'b01000);
+wire amo_op_and   			= (amo_func5 == 5'b01100);
+wire amo_op_min   			= (amo_func5 == 5'b10000);
+wire amo_op_max  			= (amo_func5 == 5'b10100);
+wire amo_op_minu  			= (amo_func5 == 5'b11000);
+wire amo_op_maxu  			= (amo_func5 == 5'b11100);
 
 
 wire inst_lui            	= (opcode == 7'b01101_11); 
@@ -98,6 +112,7 @@ wire inst_load				= (opcode == 7'b00000_11);
 wire inst_store 			= (opcode == 7'b01000_11); 
 wire inst_branch		    = (opcode == 7'b11000_11);
 wire inst_system			= (opcode == 7'b11100_11); 
+wire inst_amo				= (opcode == 7'b01011_11);
 //异常处理
 wire inst_valid = inst_lui      | inst_auipc    | inst_jal      | 
                   inst_jalr     | inst_alu_reg  | inst_alu_regw | 
@@ -195,11 +210,39 @@ wire inst_mret				= (instr == 32'b00110_00_00010_00000_000_00000_11100_11);
 wire inst_wfi			    = (instr == 32'b00010_00_00101_00000_000_00000_11100_11);
 wire inst_sfence_vma		= (inst_system & (instr[31:27] == 5'b00010) & (instr[14:12] == 3'b000));
 
-wire inst_csr_instr 		=  inst_csrrw | inst_csrrs  | inst_csrrc | inst_csrrwi | inst_csrrsi | inst_csrrci;
+wire inst_csr_instr			=  inst_csrrw | inst_csrrs  | inst_csrrc | inst_csrrwi | inst_csrrsi | inst_csrrci;
 wire inst_system_instr		=  inst_ecall | inst_ebreak | inst_uret	 | inst_sret   | inst_mret	 | inst_wfi   | inst_sfence_vma; 	 
+
+
+
+wire inst_lrw			= inst_amo		&	(func3_010)		&	amo_op_lr;
+wire inst_scw			= inst_amo		&	(func3_010)		&	amo_op_sc;
+wire inst_amoswapw		= inst_amo		&	(func3_010)		&	amo_op_swap;
+wire inst_amoaddw		= inst_amo		&	(func3_010)		&	amo_op_add;
+wire inst_amoxorw		= inst_amo		&	(func3_010)		&	amo_op_xor;
+wire inst_amoandw		= inst_amo		&	(func3_010)		&	amo_op_and;
+wire inst_amoorw		= inst_amo		&	(func3_010)		&	amo_op_or;
+wire inst_amominw		= inst_amo		&	(func3_010)		&	amo_op_min;
+wire inst_amomaxw		= inst_amo		&	(func3_010)		&	amo_op_max;
+wire inst_amominuw		= inst_amo		&	(func3_010)		&	amo_op_minu;
+wire inst_amomaxuw		= inst_amo		&	(func3_010)		&	amo_op_maxu;
+
+wire inst_lrd			= inst_amo		&	(func3_011)		&	amo_op_lr;
+wire inst_scd			= inst_amo		&	(func3_011)		&	amo_op_sc;
+wire inst_amoswapd		= inst_amo		&	(func3_011)		&	amo_op_swap;
+wire inst_amoaddd		= inst_amo		&	(func3_011)		&	amo_op_add;
+wire inst_amoxord		= inst_amo		&	(func3_011)		&	amo_op_xor;
+wire inst_amoandd		= inst_amo		&	(func3_011)		&	amo_op_and;
+wire inst_amoord		= inst_amo		&	(func3_011)		&	amo_op_or;
+wire inst_amomind		= inst_amo		&	(func3_011)		&	amo_op_min;
+wire inst_amomaxd		= inst_amo		&	(func3_011)		&	amo_op_max;
+wire inst_amominud		= inst_amo		&	(func3_011)		&	amo_op_minu;
+wire inst_amomaxud		= inst_amo		&	(func3_011)		&	amo_op_maxu;
+
 
 //------------------------------------译码结束-------------------------------------------
 assign decode_o_opcode_info = {
+	inst_amo,		//13
 	inst_csr_instr,		//12
 	inst_lui,			//11
 	inst_auipc,			//10
@@ -284,6 +327,28 @@ assign decode_o_alu_info = {
 				 (inst_remu					),
 				 (inst_remw					),
 				 (inst_remuw				) 
+};
+assign decode_o_amo_info = {
+	inst_lrw		,	//19
+	inst_scw	  	,	//18
+	inst_amoswapw	,	//17
+	inst_amoaddw	,	//16
+	inst_amoxorw	,	//15
+	inst_amoorw		,	//14
+	inst_amominw	,	//13
+	inst_amomaxw	,	//12
+	inst_amominuw	,	//11
+	inst_amomaxuw	,	//10
+	inst_lrd		,	//9
+	inst_scd		,	//8
+	inst_amoswapd	,	//7
+	inst_amoaddd	,	//6
+	inst_amoxord	,	//5
+	inst_amoord		,	//4
+	inst_amomind	,	//3
+	inst_amomaxd	,	//2
+	inst_amominud	,	//1
+	inst_amomaxud		//0
 };
 
 //立即数

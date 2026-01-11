@@ -55,7 +55,7 @@ static 		word_t arg2val(char *arg);
 void 		init_disasm(const char *triple);
 void 		disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
 
-void        difftest_step(commit_t *commit);
+void        difftest_step(const commit_t *commit);
 bool        isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc);
 
 

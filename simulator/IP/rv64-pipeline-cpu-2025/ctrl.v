@@ -4,7 +4,7 @@ module ctrl(
     input  wire          execute_i_mret_need_jump,
 
     //加载使用
-    input wire  [12:0]   regE_i_opcode_info,
+    input wire  [13:0]   regE_i_opcode_info,
     input  wire [4:0]    regE_i_reg_rd,
     input  wire [4:0]    decode_i_reg_rs1,
     input  wire [4:0]    decode_i_reg_rs2,

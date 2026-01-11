@@ -4,7 +4,7 @@
 //info
 `define nop_alu_info            28'd0
 `define nop_load_store_info     11'd0   
-`define nop_opcode_info         13'd0
+`define nop_opcode_info         14'd0
 `define nop_branch_info         6'd0
 `define nop_csrrw_info          6'd0
 `define nop_system_info         7'd0

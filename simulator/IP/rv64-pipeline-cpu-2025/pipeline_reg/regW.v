@@ -5,7 +5,7 @@ module regW(
     input wire        regW_bubble,            // 气泡信号，用于清空当前阶段
     input wire        regW_stall,             // 停滞信号，用于暂停当前阶段的更新
     //info
-    input wire [12:0]       regM_i_opcode_info,
+    input wire [13:0]       regM_i_opcode_info,
     input wire [5 :0]       regM_i_csrrw_info,
     input wire [6:0]        regM_i_system_info,
 
@@ -26,7 +26,7 @@ module regW(
     input wire  [160:0]     regM_i_commit_info,
 //-------------output---------------------
     //info
-    output reg  [12:0]      regW_o_opcode_info,
+    output reg  [13:0]      regW_o_opcode_info,
     output reg  [5:0]       regW_o_csrrw_info,
     output reg  [6:0]       regW_o_system_info,
     //data

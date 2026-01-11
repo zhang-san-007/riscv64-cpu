@@ -6,12 +6,13 @@ module regE(
     input wire         regE_stall,             // Stall 信号
 //---------input-----------------
     //info
-    input wire   [12:0] decode_i_opcode_info,       // 操作码信息
+    input wire   [13:0] decode_i_opcode_info,       // 操作码信息
     input wire   [5:0]  decode_i_branch_info,       // 分支信息
     input wire   [10:0] decode_i_load_store_info,   // 访存操作信息
     input wire   [27:0] decode_i_alu_info,          // ALU操作信息
     input wire   [5:0]  decode_i_csrrw_info,
     input wire   [6:0]  decode_i_system_info,
+    input wire   [19:0]  decode_i_amo_info,
 
 
 
@@ -36,13 +37,13 @@ module regE(
 //-------------------output-------------------------------
 
     //info
-    output reg  [12:0]  regE_o_opcode_info,     
+    output reg  [13:0]  regE_o_opcode_info,     
     output reg  [5:0]   regE_o_branch_info,     
     output reg  [10:0]  regE_o_load_store_info, 
     output reg  [27:0]  regE_o_alu_info,        
     output reg  [5:0]   regE_o_csrrw_info,
     output reg  [6:0]   regE_o_system_info,
-
+    output reg  [19:0]  regE_o_amo_info,
 
     //data
     output reg  [63:0]  regE_o_pc,              
@@ -114,3 +115,7 @@ always @(posedge clk or posedge rst) begin
 end
 
 endmodule
+
+
+//amoswap.w
+

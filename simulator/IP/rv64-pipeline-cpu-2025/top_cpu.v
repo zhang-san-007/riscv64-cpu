@@ -63,7 +63,7 @@ regD u_regD(
 );
 // outports wire
 wire [27:0] 	decode_o_alu_info;
-wire [12:0] 	decode_o_opcode_info;
+wire [13:0] 	decode_o_opcode_info;
 wire [5:0]  	decode_o_branch_info;
 wire [10:0] 	decode_o_load_store_info;
 wire [5:0]  	decode_o_csrrw_info;
@@ -79,6 +79,7 @@ wire [4:0]  	decode_o_reg_rd;
 wire        	decode_o_reg_wen;
 wire [4:0]  	decode_o_reg_rs1;
 wire [4:0]  	decode_o_reg_rs2;
+wire [9:0]		decode_o_amo_info;
 
 decode u_decode(
 	.clk                      	( clk                       ),
@@ -113,6 +114,7 @@ decode u_decode(
 	.decode_o_load_store_info 	( decode_o_load_store_info  ),
 	.decode_o_csrrw_info      	( decode_o_csrrw_info       ),
 	.decode_o_system_info     	( decode_o_system_info      ),
+	.decode_o_amo_info			(decode_o_amo_info),
 	.decode_o_regdata1        	( decode_o_regdata1         ),
 	.decode_o_regdata2        	( decode_o_regdata2         ),
 	.decode_o_csr_rdata1      	( decode_o_csr_rdata1       ),
@@ -126,7 +128,7 @@ decode u_decode(
 	.decode_o_reg_rs2         	( decode_o_reg_rs2          )
 );
 // outports wire
-wire [12:0]  	regE_o_opcode_info;
+wire [13:0]  	regE_o_opcode_info;
 wire [5:0]   	regE_o_branch_info;
 wire [10:0]  	regE_o_load_store_info;
 wire [27:0]  	regE_o_alu_info;
@@ -215,7 +217,7 @@ execute u_execute(
 );
 // outports wire
 wire [10:0]  	regM_o_load_store_info;
-wire [12:0]  	regM_o_opcode_info;
+wire [13:0]  	regM_o_opcode_info;
 wire [5:0]   	regM_o_csrrw_info;
 wire [6:0]   	regM_o_system_info;
 wire [63:0]  	regM_o_alu_result;
@@ -272,7 +274,7 @@ memory u_memory(
 	.memory_o_mem_rdata     	( memory_o_mem_rdata      )
 );
 // outports wire
-wire [12:0]  	regW_o_opcode_info;
+wire [13:0]  	regW_o_opcode_info;
 wire [5:0]   	regW_o_csrrw_info;
 wire [6:0]   	regW_o_system_info;
 wire [63:0]  	regW_o_alu_result;

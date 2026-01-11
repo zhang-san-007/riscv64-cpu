@@ -8,7 +8,7 @@ module regM(
 
 //----------input---------------------------
     input wire  [10:0]  regE_i_load_store_info,
-    input wire  [12:0]  regE_i_opcode_info,
+    input wire  [13:0]  regE_i_opcode_info,
     input wire   [5:0]  regE_i_csrrw_info,
     input wire   [6:0]  regE_i_system_info,
     //data
@@ -29,7 +29,7 @@ module regM(
 //-----------output-------------------------
     //info
     output reg   [10:0] regM_o_load_store_info,
-    output reg   [12:0] regM_o_opcode_info,
+    output reg   [13:0] regM_o_opcode_info,
     output reg   [5:0]  regM_o_csrrw_info,
     output reg   [6:0]  regM_o_system_info,   
     //data

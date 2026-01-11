@@ -63,8 +63,6 @@ void npc_init() {
   IFDEF(CONFIG_NPC_OPEN_SIM, npc_open_simulation());  
   npc_reset(1);
   update_cpu_state();
-//  print_cpu(NULL);
-
   if(cpu.pc != 0x80000000){
     npc_close_simulation();
     printf("处理器的值目前为pc=0x%lx, 处理器初始化/复位之后, PC值应该为0x80000000\n", cpu.pc);

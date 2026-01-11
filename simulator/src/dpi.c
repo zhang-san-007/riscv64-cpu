@@ -24,18 +24,28 @@ extern "C" uint32_t dpi_instr_mem_read(uint64_t addr){
 }
 
 extern "C" uint64_t dpi_mem_read(uint64_t addr, int len) {
-    if (addr == 0) return 0;
-    return pmem_read(addr, 8); 
+    if (addr >= CONFIG_MBASE && addr < (uint64_t)CONFIG_MBASE + CONFIG_MSIZE) {
+        return pmem_read(addr, len);
+    } else {
+        if (addr != 0) {
+//            fprintf(stderr, "[DPI mem_write error] Invalid address: 0x%016lx, len: %d\n", addr, len);
+        }
+        return 0;
+    }
 }
-//store指令
-extern "C" void dpi_mem_write(uint64_t addr, uint64_t data, int len, uint32_t instr, uint64_t pc){
-	if(addr == CONFIG_SERIAL_MMIO){
-		char ch = data;
-		printf("%c", ch);
-		fflush(stdout);
-	}else{
+
+extern "C" void dpi_mem_write(uint64_t addr, uint64_t data, int len) {
+    if (addr == CONFIG_SERIAL_MMIO) {
+      char ch = data;
+      printf("%c", ch);
+      fflush(stdout);
+    } else if (addr >= CONFIG_MBASE && addr < (uint64_t)CONFIG_MBASE + CONFIG_MSIZE) {
+		//
 		pmem_write(addr, len, data);
-	}
+    } else {
+        // 非法写入尝试
+//        fprintf(stderr, "[DPI mem_write error] Invalid address: 0x%016lx, data: 0x%016lx, len: %d\n", addr, data, len);
+    }
 }
 
 extern "C" void dpi_read_regfile(const svOpenArrayHandle r) {

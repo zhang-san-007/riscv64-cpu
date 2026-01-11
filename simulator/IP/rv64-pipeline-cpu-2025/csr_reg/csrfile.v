@@ -140,6 +140,7 @@ always @(posedge clk) begin
         csrfile[`satp]    <= 64'd0;
         csrfile[`medeleg] <= 64'd0;
         csrfile[`mideleg] <= 64'd0;
+        csrfile[`sstatus]  <= 64'h0000000200000100;
     end
     else if(inst_mret) begin
         cpu_mode <= csr_wdata[12:11];                       //cpu_mode<=mstatus.MPP
