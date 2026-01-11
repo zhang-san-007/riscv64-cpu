@@ -17,15 +17,15 @@ module execute(
     input wire  [63:0]  regE_i_csr_rdata2,
 
 //output
-    output wire [160:0] execute_o_commit_info,
     output wire [63:0]  execute_o_alu_result,
-
     //mret-pc
-    output wire         execute_o_mret_jump,
+    output wire         execute_o_mret_need_jump,
     output wire [63:0]  execute_o_mret_next_pc,
     //branch-pc
+    output wire [63:0]  execute_o_branch_next_pc,
     output wire         execute_o_branch_need_jump,
-    output wire [63:0]  execute_o_branch_next_pc
+    //commit
+    output wire [160:0] execute_o_commit_info
 );
 
 wire op_csrrw       = regE_i_opcode_info[12];
@@ -83,7 +83,13 @@ wire inst_csrrwi    = regE_i_csrrw_info[2];
 wire inst_csrrsi    = regE_i_csrrw_info[1];
 wire inst_csrrci    = regE_i_csrrw_info[0];
 
-wire inst_mret      = regE_i_system_info[0];
+wire inst_ecall         =   regE_i_system_info[6];
+wire inst_ebreak        =   regE_i_system_info[5];
+wire inst_uret          =   regE_i_system_info[4];
+wire inst_sret          =   regE_i_system_info[3];
+wire inst_mret          =   regE_i_system_info[2];
+wire inst_wif           =   regE_i_system_info[1];
+wire inst_sfence_vma    =   regE_i_system_info[0];
 
 
 wire [63:0] alu_src1 = op_alu_reg | op_alu_regw ? regE_i_regdata1    : 
@@ -97,16 +103,16 @@ wire [63:0] alu_src1 = op_alu_reg | op_alu_regw ? regE_i_regdata1    :
                        op_auipc                 ? regE_i_pc          : 
                        op_csrrw                 ? regE_i_regdata1    : 64'd0;
 
-wire [63:0] alu_src2 = op_alu_reg | op_alu_regw  ? regE_i_regdata2   : 
-                       op_alu_imm | op_alu_immw  ? regE_i_imm        : 
-                       op_branch                 ? regE_i_imm        : 
-                       op_store                  ? regE_i_imm        : 
-                       op_load                   ? regE_i_imm        : 
-                       op_jal                    ? regE_i_imm        : 
-                       op_jalr                   ? regE_i_imm        : 
-                       op_lui                    ? regE_i_imm        : 
-                       op_auipc                  ? regE_i_imm        : 
-                       op_csrrw                  ? regE_i_csr_rdata  : 64'd0;
+wire [63:0] alu_src2 = op_alu_reg | op_alu_regw  ? regE_i_regdata2    : 
+                       op_alu_imm | op_alu_immw  ? regE_i_imm         : 
+                       op_branch                 ? regE_i_imm         : 
+                       op_store                  ? regE_i_imm         : 
+                       op_load                   ? regE_i_imm         : 
+                       op_jal                    ? regE_i_imm         : 
+                       op_jalr                   ? regE_i_imm         : 
+                       op_lui                    ? regE_i_imm         : 
+                       op_auipc                  ? regE_i_imm         : 
+                       op_csrrw                  ? regE_i_csr_rdata1  : 64'd0;
 
 wire [63:0]   signed_alu_src1 = $signed(alu_src1);
 wire [63:0]   signed_alu_src2 = $signed(alu_src2);
@@ -185,7 +191,7 @@ assign execute_o_alu_result = op_lui    ?   {alu_src1  +  alu_src2    }         
                               inst_csrrci   ? (alu_src2 & (~alu_src1))  : 64'd0;
 
 
-//branch
+//-------------------------------------------branch------------------------------------------------------------
 wire inst_beq   = regE_i_branch_info[5];
 wire inst_bne   = regE_i_branch_info[4];
 wire inst_blt   = regE_i_branch_info[3];
@@ -202,11 +208,17 @@ assign execute_o_branch_need_jump = (inst_beq  && ($signed  (regE_i_regdata1) ==
 
 wire [63:0] tmp = op_jalr ?  (execute_o_alu_result & ~1) : 64'd0;
 assign  execute_o_branch_next_pc   = op_jalr                      ? (execute_o_alu_result & ~1)           : 
-                                    op_jal                        ?  execute_o_alu_result                 : 
-                                    execute_o_branch_need_jump    ?  execute_o_alu_result                 : 64'd0;
+                                     op_jal                        ?  execute_o_alu_result                 : 
+                                     execute_o_branch_need_jump    ?  execute_o_alu_result                 : 64'd0;
 
 
-assign execute_o_commit_info = execute_o_branch_need_jump ? {regE_i_commit_info[160], regE_i_commit_info[159:128], execute_o_branch_next_pc, regE_i_commit_info[63:0]} : regE_i_commit_info;
+//-------------------------------------------mret------------------------------------------------------------
+assign execute_o_mret_need_jump = inst_mret;
+assign execute_o_mret_next_pc   = regE_i_csr_rdata2;
+
+
+assign execute_o_commit_info = execute_o_branch_need_jump ?  {regE_i_commit_info[160], regE_i_commit_info[159:128], execute_o_branch_next_pc, regE_i_commit_info[63:0]} : 
+                               execute_o_mret_need_jump   ?  {regE_i_commit_info[160], regE_i_commit_info[159:128], execute_o_mret_next_pc,   regE_i_commit_info[63:0]} : regE_i_commit_info;
 
 
 //commite_info

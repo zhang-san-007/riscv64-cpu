@@ -12,13 +12,14 @@
 `define nop_imm                 64'd0
 `define nop_regdata1            64'd0
 `define nop_regdata2            64'd0
-`define nop_csr_rdata           64'd0
+`define nop_csr_rdata1          64'd0
+`define nop_csr_rdata2          64'd0
 `define nop_mem_rdata           64'd0
 `define nop_alu_result          64'd0
 //reg&csr
 `define nop_reg_rd              5'd0
 `define nop_reg_wen             1'd0
-`define nop_csr_id             12'd0
+`define nop_csr_wid            12'd0
 `define nop_csr_wen             1'd0
 //commit
 `define nop_commit_info         161'd0
@@ -88,4 +89,7 @@
 `define pmpaddr13   12'h3BD
 `define pmpaddr14   12'h3BE
 `define pmpaddr15   12'h3BF
+
+
+
 

@@ -120,7 +120,16 @@ check_csr_wid u_check_csr_wid(
     .csr_wid(csr_wid),
     .right_csr_wid(right_csr_wid)
 );
-//wire inst_mret  = 
+
+
+wire inst_ecall         =   wb_i_system_info[6];
+wire inst_ebreak        =   wb_i_system_info[5];
+wire inst_uret          =   wb_i_system_info[4];
+wire inst_sret          =   wb_i_system_info[3];
+wire inst_mret          =   wb_i_system_info[2]; 
+wire inst_wif           =   wb_i_system_info[1];
+wire inst_sfence_vma    =   wb_i_system_info[0];
+
 always @(posedge clk) begin
     if(rst) begin
         csrfile[`mhartid] <= 64'd0;
@@ -132,16 +141,18 @@ always @(posedge clk) begin
         csrfile[`medeleg] <= 64'd0;
         csrfile[`mideleg] <= 64'd0;
     end
+    else if(inst_mret) begin
+        cpu_mode <= csr_wdata[12:11];                       //cpu_mode<=mstatus.MPP
+        csrfile[`mstatus][3]    <= csr_wdata[7];            //mstatus.MIE  <= mstatus.MPIE
+        csrfile[`mstatus][7]    <= 1'b1;                    //mstatus.MPIE <= 1'b1
+        csrfile[`mstatus][12:11]<= 2'b00;                   //mstatus.MPP  <= 2'b00
+    end
 
     else if(csr_wen && right_csr_wid) begin
         csrfile[csr_wid] <= csr_wdata;
     end
-    else if(inst_mret) begin
-        // mode <= csr_wdata.MPP;
-        // csrfile[`mstatus].MIE  <= csr_wdata.MPIE;
-        // csrfile[`mstatus].MPIE <= 1'b1;
-        // csrfile[`mstatue].MPP  <= 0; 
-    end
+
+
 end
 //--------------------------csr write-----end---------------------------
                   

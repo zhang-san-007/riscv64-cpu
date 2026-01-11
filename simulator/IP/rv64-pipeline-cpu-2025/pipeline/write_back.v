@@ -9,21 +9,23 @@ module write_back(
        input  wire [63:0]   regW_i_pc,
        input wire [63:0]    regW_i_csr_rdata1,
 
-       //reg&csr
+       //csrcsr
+       input wire [11:0]    regW_i_csr_wid,
+       input wire           regW_i_csr_wen,
+       //reg
        input wire           regW_i_reg_wen,
        input wire [4:0]     regW_i_reg_rd, 
 
-       input wire           regW_i_csr_wen,
-       input wire [11:0]    regW_i_csr_wid,
+       //wb_csr
+       output wire          wb_o_csr_wen,
+       output wire [63:0]   wb_o_csr_wdata,
+       output wire [11:0]   wb_o_csr_wid,
+       output wire [6:0]    wb_o_system_info,
 
        //wb_reg
        output wire [4:0]    wb_o_reg_rd,
        output wire [63:0]   wb_o_reg_wdata,
-       output wire          wb_o_reg_wen,
-       //wb_csr
-       output wire          wb_o_csr_wen,
-       output wire [63:0]   wb_o_csr_wdata,
-       output wire [11:0]   wb_o_csr_wid
+       output wire          wb_o_reg_wen
 );
 
 

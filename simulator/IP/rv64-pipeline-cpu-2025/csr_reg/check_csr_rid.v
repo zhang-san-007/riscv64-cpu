@@ -42,7 +42,7 @@ wire csr_id2_pmp =        (csr_rid2 == `pmpcfg0)     | (csr_rid2 == `pmpcfg1)   
                         | (csr_rid2 == `pmpaddr12)   | (csr_rid2 == `pmpaddr13)     | (csr_rid2 == `pmpaddr14)  | (csr_rid2 == `pmpaddr15);
 
 assign right_csr_rid1 = csr_id1_user | csr_id1_machine | csr_id1_super | csr_id1_pmp;
-assign right_csr_rid2 = csr_id2_user | csr_id2_machien | csr_id2_super | csr_id2_pmp;
+assign right_csr_rid2 = csr_id2_user | csr_id2_machine | csr_id2_super | csr_id2_pmp;
 
 endmodule
 

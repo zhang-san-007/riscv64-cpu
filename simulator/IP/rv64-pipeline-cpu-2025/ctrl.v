@@ -1,6 +1,7 @@
 
 module ctrl(
     input  wire          execute_i_branch_need_jump,
+    input  wire          execute_i_mret_need_jump,
 
     //加载使用
     input wire  [12:0]   regE_i_opcode_info,
@@ -25,10 +26,11 @@ wire inst_load          = regE_i_opcode_info[3];
 
 wire load_use           = (regE_i_reg_rd == decode_i_reg_rs1 || regE_i_reg_rd == decode_i_reg_rs2) && inst_load;
 wire branch_bubble      = execute_i_branch_need_jump;
+wire mret_bubble        = execute_i_mret_need_jump;
 
 assign regF_bubble      = 1'b0;
-assign regD_bubble      = branch_bubble;
-assign regE_bubble      = branch_bubble || load_use;
+assign regD_bubble      = branch_bubble | mret_bubble;
+assign regE_bubble      = branch_bubble | load_use | mret_bubble; 
 assign regM_bubble      = 1'b0;
 assign regW_bubble      = 1'b0;
 

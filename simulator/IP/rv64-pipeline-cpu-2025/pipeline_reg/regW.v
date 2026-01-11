@@ -14,10 +14,10 @@ module regW(
     input wire [63:0]       memory_i_mem_rdata,
     input wire [63:0]       regM_i_pc,
     input wire [63:0]       regM_i_regdata2,
-    input wire [63:0]       regM_i_csr_rdata,
+    input wire [63:0]       regM_i_csr_rdata1,
 
     //reg
-    input wire  [11:0]      regM_i_csr_id,
+    input wire  [11:0]      regM_i_csr_wid,
     input wire              regM_i_csr_wen,
     input wire  [4:0]       regM_i_reg_rd,
     input wire              regM_i_reg_wen,
@@ -33,52 +33,60 @@ module regW(
     output reg  [63:0]      regW_o_alu_result,
     output reg  [63:0]      regW_o_mem_rdata,
     output reg  [63:0]      regW_o_pc,
-    output reg  [63:0]      regW_o_csr_rdata,
+    output reg  [63:0]      regW_o_csr_rdata1,
     output reg  [63:0]      regW_o_regdata2,
 
     //reg&csr
     output reg  [4:0]       regW_o_reg_rd,
     output reg              regW_o_reg_wen,
-    output reg  [11:0]      regW_o_csr_id,
+    output reg  [11:0]      regW_o_csr_wid,
     output reg              regW_o_csr_wen,
     //commit
     output reg  [160:0]     regW_o_commit_info
 );
 
-    // always @(posedge clk) begin
-    //     if(rst || regW_bubble) begin
-    //         regW_o_opcode_info  <= `nop_opcode_info;
-    //         regW_o_csrrw_info   <=  `nop_csrrw_info;
-    //         regW_o_system_info  <=  `nop_system_info;
-    //         regW_o_alu_result   <=  `nop_alu_result;
-    //         regW_o_mem_rdata    <=  `nop_mem_rdata;
-    //         regW_o_pc           <=  `nop_pc;
-    //         regW_o_csr_rdata    <=  `nop_csr_rdata;
-    //         regW_o_regdata2     <=  `nop_regdata2;
-    //         regW_o_reg_rd       <=  `nop_reg_rd;
-    //         regW_o_reg_wen      <=  `nop_reg_wen;
-    //         regW_o_csr_id       <=  `nop_csr_id;
-    //         regW_o_csr_wen      <=  `nop_csr_wen;
-    //         regW_o_commit_info  <=  `nop_commit_info;
-    //     end 
-    //     else if (regW_stall) begin
-    //         // 如果存在停滞信号，则保持当前值不变
-    //         // 这里不需要显式赋值，因为Verilog中未赋值的reg类型会保持原值
-    //     end else begin
-    //         regW_o_opcode_info  <=  regM_i_opcode_info;
-    //         regW_o_csrrw_info   <=  regM_i_csrrw_info;
-    //         regW_o_system_info  <=  regM_i_system_info;
-    //         regW_o_alu_result   <=  regM_i_alu_result;
-    //         regW_o_mem_rdata    <=  memory_i_mem_rdata;
-    //         regW_o_pc           <=  regM_i_pc;
-    //         regW_o_csr_rdata    <=  regM_i_csr_rdata;
-    //         regW_o_regdata2     <=  regM_i_regdata2;
-    //         regW_o_reg_rd       <=  regM_i_reg_rd;
-    //         regW_o_reg_wen      <=  regM_i_reg_wen;
-    //         regW_o_csr_id       <=  regM_i_csr_id;
-    //         regW_o_csr_wen      <=  regM_i_csr_wen;
-    //         regW_o_commit_info  <=  regM_i_commit_info;
-    //     end
-    // end
+    always @(posedge clk) begin
+        if(rst || regW_bubble) begin
+            //info
+            regW_o_opcode_info  <= `nop_opcode_info;
+            regW_o_csrrw_info   <=  `nop_csrrw_info;
+            regW_o_system_info  <=  `nop_system_info;
+            //
+            regW_o_alu_result   <=  `nop_alu_result;
+            regW_o_mem_rdata    <=  `nop_mem_rdata;
+            regW_o_pc           <=  `nop_pc;
+            regW_o_csr_rdata1   <=  `nop_csr_rdata1;
+            regW_o_regdata2     <=  `nop_regdata2;
+            //reg
+            regW_o_reg_rd       <=  `nop_reg_rd;
+            regW_o_reg_wen      <=  `nop_reg_wen;
+            //csr
+            regW_o_csr_wid       <=  `nop_csr_wid;
+            regW_o_csr_wen      <=  `nop_csr_wen;
+            regW_o_commit_info  <=  `nop_commit_info;
+        end 
+        else if (regW_stall) begin
+            // 如果存在停滞信号，则保持当前值不变
+            // 这里不需要显式赋值，因为Verilog中未赋值的reg类型会保持原值
+        end else begin
+            //info
+            regW_o_opcode_info  <=  regM_i_opcode_info;
+            regW_o_csrrw_info   <=  regM_i_csrrw_info;
+            regW_o_system_info  <=  regM_i_system_info;
+            //data
+            regW_o_alu_result   <=  regM_i_alu_result;
+            regW_o_mem_rdata    <=  memory_i_mem_rdata;
+            regW_o_pc           <=  regM_i_pc;
+            regW_o_csr_rdata1    <=  regM_i_csr_rdata1;
+            regW_o_regdata2     <=  regM_i_regdata2;
+            //reg
+            regW_o_reg_rd       <=  regM_i_reg_rd;
+            regW_o_reg_wen      <=  regM_i_reg_wen;
+            //csr
+            regW_o_csr_wid       <=  regM_i_csr_wid;
+            regW_o_csr_wen      <=  regM_i_csr_wen;
+            regW_o_commit_info  <=  regM_i_commit_info;
+        end
+    end
 
 endmodule
