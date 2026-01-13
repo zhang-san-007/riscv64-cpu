@@ -1,6 +1,7 @@
 module memory(
     input wire clk,
     input wire rst,
+    input wire  [63:0]   regM_i_pc,     //for debug
     input wire  [19:0]   regM_i_amo_info,
     input wire  [10:0]   regM_i_load_store_info,
     input wire  [63:0]   regM_i_alu_result,
@@ -9,8 +10,8 @@ module memory(
     output wire [63:0]   memory_o_mem_rdata
 );
 
-import "DPI-C" function void    dpi_mem_write(input longint addr, input longint data, int len);
-import "DPI-C" function longint dpi_mem_read (input longint addr, input int len);
+import "DPI-C" function void    dpi_mem_write(input longint addr, input longint data, int len, input longint pc);
+import "DPI-C" function longint dpi_mem_read (input longint addr, input int len,               input longint pc);
 
 wire inst_amoswapw = regM_i_amo_info[17];
 
@@ -67,7 +68,7 @@ wire inst_store =   inst_sb | inst_sh | inst_sw | inst_sd;
 reg [63:0] mem_rdata;
 always @(*) begin
     if(inst_load)begin
-        mem_rdata = dpi_mem_read(mem_addr, 8);
+        mem_rdata = dpi_mem_read(mem_addr, 8, regM_i_pc);
     end
     else begin
         mem_rdata = 64'd0;
@@ -86,19 +87,19 @@ assign memory_o_mem_rdata  = (inst_lb)          ?     { {56{mem_rdata[7]}},    m
 //要写入的数据
 always @(posedge clk) begin
 	if(inst_sb) begin
-		dpi_mem_write(mem_addr, mem_wdata, 1);
+		dpi_mem_write(mem_addr, mem_wdata, 1, regM_i_pc);
 	end
 	else if(inst_sh) begin
-		dpi_mem_write(mem_addr, mem_wdata, 2);		
+		dpi_mem_write(mem_addr, mem_wdata, 2, regM_i_pc);		
 	end
 	else if(inst_sw) begin
-		dpi_mem_write(mem_addr, mem_wdata, 4);				
+		dpi_mem_write(mem_addr, mem_wdata, 4, regM_i_pc);				
 	end
     else if(inst_sd) begin
-        dpi_mem_write(mem_addr, mem_wdata, 8);		
+        dpi_mem_write(mem_addr, mem_wdata, 8, regM_i_pc);		
     end
     else if(inst_amoswapw) begin
-        dpi_mem_write(mem_addr, mem_wdata, 4);
+        dpi_mem_write(mem_addr, mem_wdata, 4, regM_i_pc);
     end
 end
 endmodule

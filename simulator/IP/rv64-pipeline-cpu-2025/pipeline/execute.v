@@ -93,6 +93,7 @@ wire inst_mret          =   regE_i_system_info[2];
 wire inst_wif           =   regE_i_system_info[1];
 wire inst_sfence_vma    =   regE_i_system_info[0];
 
+//wire inst_fence;
 
 
 
@@ -140,6 +141,8 @@ wire  [31:0]        remw_result   = {$signed(alu_src1[31:0]) % $signed(alu_src2[
 wire [63:0] alu_add_result  = alu_src1 + alu_src2;
 wire [63:0] alu_sub_result  = alu_src1 - alu_src2;
 wire [63:0] alu_sll_result  = {$signed(alu_src1)  << $signed(alu_src2[5:0])};
+//wire [63:0] alu_srl_result  = 
+
 wire [63:0] alu_sllw_result = {$signed(alu_src1)  << $signed(alu_src2[4:0])};
 wire [63:0] alu_sra_result  =  $signed(alu_src1)    >>> alu_src2[5:0];
 wire [31:0] alu_sraw_result = {$signed(alu_src1[31:0])  >>> alu_src2[4:0]};

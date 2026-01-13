@@ -2,6 +2,7 @@
 module regM(    
     input wire        clk,                    // 时钟信号
     input wire        rst,                    // 复位信号
+
     //
     input wire        regM_bubble,            // 气泡信号，用于清空当前阶段
     input wire        regM_stall,             // 停滞信号，用于暂停当前阶段的更新
@@ -11,10 +12,12 @@ module regM(
     input wire  [13:0]  regE_i_opcode_info,
     input wire   [5:0]  regE_i_csrrw_info,
     input wire   [6:0]  regE_i_system_info,
+    input wire  [19:0]  regE_i_amo_info,
     //data
     input wire  [63:0]  execute_i_alu_result,
     input wire  [63:0]  regE_i_pc,         
     input wire  [63:0]  regE_i_csr_rdata1,
+    input wire  [63:0]  regE_i_regdata1,
     input wire  [63:0]  regE_i_regdata2,
     //csr
     input wire  [11:0]  regE_i_csr_wid,
@@ -32,10 +35,12 @@ module regM(
     output reg   [13:0] regM_o_opcode_info,
     output reg   [5:0]  regM_o_csrrw_info,
     output reg   [6:0]  regM_o_system_info,   
+    output reg   [19:0] regM_o_amo_info,
     //data
     output reg   [63:0] regM_o_alu_result,
     output reg   [63:0] regM_o_pc,        
     output reg  [63:0]  regM_o_csr_rdata1,
+    output reg   [63:0] regM_o_regdata1,
     output reg   [63:0] regM_o_regdata2,
 
     //csr
@@ -56,13 +61,14 @@ module regM(
             regM_o_opcode_info      <= `nop_opcode_info;
             regM_o_csrrw_info       <= `nop_csrrw_info;
             regM_o_system_info      <= `nop_system_info;
-
+            regM_o_amo_info         <= `nop_amo_info;
             //data
             regM_o_regdata2         <= `nop_regdata2;
+            regM_o_regdata1         <= `nop_regdata1;
+
             regM_o_alu_result       <= `nop_alu_result;
             regM_o_pc               <= `nop_pc;  // 清零程序计数器
             regM_o_csr_rdata1        <= `nop_csr_rdata1;
-
             //reg
             regM_o_reg_rd           <= `nop_reg_rd;
             regM_o_reg_wen          <= `nop_reg_wen;
@@ -80,9 +86,10 @@ module regM(
             regM_o_opcode_info      <= regE_i_opcode_info;
             regM_o_csrrw_info       <= regE_i_csrrw_info;
             regM_o_system_info      <= regE_i_system_info;
-
+            regM_o_amo_info         <= regE_i_amo_info;
             //data
             regM_o_regdata2         <= regE_i_regdata2;
+            regM_o_regdata1         <= regE_i_regdata1;
             regM_o_alu_result       <= execute_i_alu_result;
             regM_o_pc               <= regE_i_pc;
             regM_o_csr_rdata1        <= regE_i_csr_rdata1;

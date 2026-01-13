@@ -189,13 +189,13 @@ bool is_special_instr(const decode_t *decode) {
     switch(decode->opcode){
         case op_load:
             if(is_mmio){
-                printf("\033[1;33m[MMIO Load ]\033[0m PC: 0x%016lx | Instr: 0x%08x | Addr: 0x%016lx | Len: %d\n", pc, instr, mem_addr, load_store_bytes);
+//                printf("\033[1;33m[MMIO Load ]\033[0m PC: 0x%016lx | Instr: 0x%08x | Addr: 0x%016lx | Len: %d\n", pc, instr, mem_addr, load_store_bytes);
                 special_instr = true;
             }
             break;
         case op_store:
             if(is_mmio){
-                printf("\033[1;36m[MMIO Store]\033[0m PC: 0x%016lx | Instr: 0x%08x | Addr: 0x%016lx | WData: 0x%016lx | Len: %d\n", pc, instr, mem_addr, mem_wdata, load_store_bytes);
+//                printf("\033[1;36m[MMIO Store]\033[0m PC: 0x%016lx | Instr: 0x%08x | Addr: 0x%016lx | WData: 0x%016lx | Len: %d\n", pc, instr, mem_addr, mem_wdata, load_store_bytes);
                 special_instr = true;
             }
             break;
@@ -216,19 +216,17 @@ void check_load_store_instr(){
 
 
 void instr_decode(decode_t * decode, const commit_t *commit){    
-    
     decode->pc          = commit->pc;
     decode->next_pc     = commit->next_pc;
     decode->instr       = commit->instr;
     decode->mem_addr    = commit->mem_addr;
     decode->mem_wdata   = commit->mem_wdata;
     decode->mem_rdata   = commit->mem_rdata;
-
     u32 instr = commit->instr;
     decode->opcode      = GET_OPCODE(instr);     //GET_OPCODE
     decode->csr_id      = GET_CSR_ID(instr);
-    decode->func3      = GET_FUNC3  (instr);
-    decode->func7      = GET_FUNC7  (instr);
+    decode->func3       = GET_FUNC3 (instr);
+    decode->func7       = GET_FUNC7 (instr);
     decode->rd          = GET_RD    (instr);
 };
 
@@ -236,7 +234,13 @@ void difftest_step(const commit_t *commit) {
     CPU_state ref_r;
     decode_t decode;
     instr_decode(&decode, commit);
-
+    if(decode.pc == 0x8000121c){
+        isa_reg_display(&cpu, "debug");
+        npc_single_cycle();
+        npc_close_simulation();
+        Log("[NPC] Difftest 终止，请检查上述差异。\n");
+        exit(1);   
+    }
 
     ref_difftest_exec(1);    
     if(is_special_instr(&decode)){
@@ -245,7 +249,6 @@ void difftest_step(const commit_t *commit) {
     }
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
     check_load_store_instr();
-
     checkregs(&ref_r, decode.pc, decode.next_pc);
     checkcsrs(&ref_r, decode.pc, decode.next_pc);
 }

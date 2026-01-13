@@ -8,6 +8,7 @@ module regW(
     input wire [13:0]       regM_i_opcode_info,
     input wire [5 :0]       regM_i_csrrw_info,
     input wire [6:0]        regM_i_system_info,
+    input wire [19:0]       regM_i_amo_info,
 
     //data
     input wire [63:0]       regM_i_alu_result,
@@ -29,6 +30,7 @@ module regW(
     output reg  [13:0]      regW_o_opcode_info,
     output reg  [5:0]       regW_o_csrrw_info,
     output reg  [6:0]       regW_o_system_info,
+    output reg  [19:0]      regW_o_amo_info,
     //data
     output reg  [63:0]      regW_o_alu_result,
     output reg  [63:0]      regW_o_mem_rdata,
@@ -51,6 +53,7 @@ module regW(
             regW_o_opcode_info  <= `nop_opcode_info;
             regW_o_csrrw_info   <=  `nop_csrrw_info;
             regW_o_system_info  <=  `nop_system_info;
+            regW_o_amo_info     <=  `nop_amo_info;
             //
             regW_o_alu_result   <=  `nop_alu_result;
             regW_o_mem_rdata    <=  `nop_mem_rdata;
@@ -73,6 +76,8 @@ module regW(
             regW_o_opcode_info  <=  regM_i_opcode_info;
             regW_o_csrrw_info   <=  regM_i_csrrw_info;
             regW_o_system_info  <=  regM_i_system_info;
+            regW_o_amo_info     <=  regM_i_amo_info;
+
             //data
             regW_o_alu_result   <=  regM_i_alu_result;
             regW_o_mem_rdata    <=  memory_i_mem_rdata;

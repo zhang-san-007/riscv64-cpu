@@ -39,8 +39,8 @@ wire inst_amoswapw   = regW_i_amo_info[17];
 
 
 //reg
-assign wb_o_reg_wdata       = (op_jal || op_jalr) ? regW_i_pc + 64'd4 : 
-                              (op_load)           ? regW_i_mem_rdata    : 
+assign wb_o_reg_wdata       = (op_jal || op_jalr) ? regW_i_pc + 64'd4   : 
+                              (op_load )          ? regW_i_mem_rdata    : 
                               (op_csrrw)          ? regW_i_csr_rdata1   : 
                               (inst_amoswapw)     ? regW_i_mem_rdata    : regW_i_alu_result;
 assign wb_o_reg_rd          = regW_i_reg_rd;

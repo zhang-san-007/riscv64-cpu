@@ -158,8 +158,8 @@ wire inst_slli 	 			= (inst_alu_imm & func3_001);
 wire inst_slti  			= (inst_alu_imm & func3_010);
 wire inst_sltiu 			= (inst_alu_imm & func3_011);
 wire inst_xori  			= (inst_alu_imm & func3_100);
-wire inst_srli  			= (inst_alu_imm & func3_101 & func7_0000000);
-wire inst_srai  			= (inst_alu_imm & func3_101 & func7_0100000);
+wire inst_srli  			= (inst_alu_imm & func3_101 & instr[31:26] == 6'b000_000);
+wire inst_srai  			= (inst_alu_imm & func3_101 & instr[31:26] == 6'b010_000);
 wire inst_ori   			= (inst_alu_imm & func3_110);
 wire inst_andi 			   	= (inst_alu_imm & func3_111);
 
@@ -233,16 +233,16 @@ wire inst_amoswapd		= inst_amo		&	(func3_011)		&	amo_op_swap;
 wire inst_amoaddd		= inst_amo		&	(func3_011)		&	amo_op_add;
 wire inst_amoxord		= inst_amo		&	(func3_011)		&	amo_op_xor;
 wire inst_amoandd		= inst_amo		&	(func3_011)		&	amo_op_and;
-wire inst_amoord		= inst_amo		&	(func3_011)		&	amo_op_or;
-wire inst_amomind		= inst_amo		&	(func3_011)		&	amo_op_min;
-wire inst_amomaxd		= inst_amo		&	(func3_011)		&	amo_op_max;
-wire inst_amominud		= inst_amo		&	(func3_011)		&	amo_op_minu;
-wire inst_amomaxud		= inst_amo		&	(func3_011)		&	amo_op_maxu;
+wire inst_amoord		= inst_amo		&	(func3_011)		&	amo_op_or	;
+wire inst_amomind		= inst_amo		&	(func3_011)		&	amo_op_min	;
+wire inst_amomaxd		= inst_amo		&	(func3_011)		&	amo_op_max	;
+wire inst_amominud		= inst_amo		&	(func3_011)		&	amo_op_minu	;
+wire inst_amomaxud		= inst_amo		&	(func3_011)		&	amo_op_maxu	;
 
 
 //------------------------------------译码结束-------------------------------------------
 assign decode_o_opcode_info = {
-	inst_amo,		//13
+	inst_amo,			//13
 	inst_csr_instr,		//12
 	inst_lui,			//11
 	inst_auipc,			//10
@@ -381,7 +381,7 @@ wire   csr_rw			=  inst_csrrw | inst_csrrs | inst_csrrc | inst_csrrwi | inst_csr
 //-------------------------------------------reg-begin---------------------------------
 assign decode_o_reg_rs1 		=  rs1; 
 assign decode_o_reg_rs2 		=  rs2;
-assign decode_o_reg_wen 	= inst_i_type | inst_u_type | inst_r_type | inst_j_type | csr_rw;
+assign decode_o_reg_wen 	= inst_i_type | inst_u_type | inst_r_type | inst_j_type | csr_rw | inst_amo;
 assign decode_o_reg_rd  	=  rd;
 wire [63:0] 	regfile_o_regdata1;
 wire [63:0] 	regfile_o_regdata2;
@@ -415,7 +415,7 @@ assign decode_o_regdata1 = regE_i_reg_rd != 5'd0 && regE_i_reg_wen && regE_i_reg
 						   regM_i_reg_rd != 5'd0 && regM_i_reg_wen && regM_i_reg_rd == rs1 && regM_sel_alu_result	? regM_i_alu_result     : 
 						   regM_i_reg_rd != 5'd0 && regM_i_reg_wen && regM_i_reg_rd == rs1 && regM_sel_mem_rdata  	? memory_i_mem_rdata 	: 
 						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs1 && regW_sel_alu_result 	? regW_i_alu_result 	: 
-						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs1 && regW_sel_mem_rdata		? regW_i_mem_rdata 		: 
+						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs1 && regW_sel_mem_rdata	? regW_i_mem_rdata 		: 
 						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs1 && regW_sel_pc			? regW_i_pc + 64'd4     : 
 						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs1 && regW_sel_csr_rdata	? regW_i_csr_rdata1	    : regfile_o_regdata1; 
 
@@ -434,8 +434,8 @@ assign decode_o_regdata2 = regE_i_reg_rd != 5'd0 && regE_i_reg_wen && regE_i_reg
 wire [63:0] 	csr_o_csr_rdata1;
 wire [63:0]     csr_o_csr_rdata2;
 
-wire [11:0] csr_rid1 	= (inst_mret) ? `mstatus : csr_id;
-wire [11:0] csr_rid2 	= (inst_mret) ? `mepc 	 : csr_id;
+wire [11:0] csr_rid1 			= (inst_mret) ? `mstatus : csr_id;
+wire [11:0] csr_rid2 			= (inst_mret) ? `mepc 	 : csr_id;
 
 assign decode_o_csr_wid			=  (inst_mret) ? `mstatus : csr_id;
 assign decode_o_csr_wen			=  (inst_mret) ? 1'b1     : csr_rw;
@@ -445,13 +445,13 @@ assign decode_o_csr_wen			=  (inst_mret) ? 1'b1     : csr_rw;
 csrfile u_csrfile(
 	.clk             	( clk              		),
 	.rst             	( rst              		),
-	.wb_i_system_info	(wb_i_system_info),
+	.wb_i_system_info	( wb_i_system_info      ),
 	.wb_i_csr_wen    	( wb_i_csr_wen     		),
 	.wb_i_csr_wid     	( wb_i_csr_wid      	),
 	.wb_i_csr_wdata  	( wb_i_csr_wdata   		),
 	.decode_i_csr_rid1 	( csr_rid1 				),
 	.decode_i_csr_rid2  ( csr_rid2				),
-	.csr_o_csr_rdata1 	( decode_o_csr_rdata1  ),
+	.csr_o_csr_rdata1 	( decode_o_csr_rdata1   ),
 	.csr_o_csr_rdata2	(decode_o_csr_rdata2)
 );
 

@@ -8,6 +8,7 @@
 `define nop_branch_info         6'd0
 `define nop_csrrw_info          6'd0
 `define nop_system_info         7'd0
+`define nop_amo_info            20'd0;
 //data
 `define nop_imm                 64'd0
 `define nop_regdata1            64'd0

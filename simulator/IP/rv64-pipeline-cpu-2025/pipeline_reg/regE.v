@@ -66,20 +66,22 @@ module regE(
 // 时序逻辑：控制寄存器的更新，使用时钟信号 clk
 always @(posedge clk or posedge rst) begin
     if (rst || regE_bubble) begin
-        //data
-        regE_o_regdata1         <= `nop_regdata1;
-        regE_o_regdata2         <= `nop_regdata2;
-        regE_o_pc               <= `nop_pc;
-        regE_o_imm              <= `nop_imm;
-        regE_o_csr_rdata1        <= `nop_csr_rdata1;
-        regE_o_csr_rdata2       <= `nop_csr_rdata2;
         //info
-        regE_o_alu_info         <= `nop_alu_info;
-        regE_o_load_store_info  <= `nop_load_store_info;
         regE_o_opcode_info      <= `nop_opcode_info;
         regE_o_branch_info      <= `nop_branch_info;
+        regE_o_load_store_info  <= `nop_load_store_info;
+        regE_o_alu_info         <= `nop_alu_info;
         regE_o_csrrw_info       <= `nop_csrrw_info;
         regE_o_system_info      <= `nop_system_info;
+        regE_o_amo_info         <= `nop_amo_info;
+
+        //data
+        regE_o_pc               <= `nop_pc;
+        regE_o_csr_rdata1        <= `nop_csr_rdata1;
+        regE_o_csr_rdata2       <= `nop_csr_rdata2;
+        regE_o_regdata1         <= `nop_regdata1;
+        regE_o_regdata2         <= `nop_regdata2;
+        regE_o_imm              <= `nop_imm;
         //csr
         regE_o_csr_wid           <= `nop_csr_wid;
         regE_o_csr_wen          <= `nop_csr_wen;
@@ -97,12 +99,13 @@ always @(posedge clk or posedge rst) begin
         regE_o_csr_rdata1        <= decode_i_csr_rdata1;
         regE_o_csr_rdata2       <= decode_i_csr_rdata2;
         //info
-        regE_o_alu_info         <= decode_i_alu_info;
-        regE_o_load_store_info  <= decode_i_load_store_info;
         regE_o_opcode_info      <= decode_i_opcode_info;
         regE_o_branch_info      <= decode_i_branch_info;
+        regE_o_load_store_info  <= decode_i_load_store_info;
+        regE_o_alu_info         <= decode_i_alu_info;
         regE_o_csrrw_info       <= decode_i_csrrw_info;
         regE_o_system_info      <= decode_i_system_info;
+        regE_o_amo_info         <= decode_i_amo_info;
         //csr
         regE_o_csr_wid           <= decode_i_csr_wid;
         regE_o_csr_wen          <= decode_i_csr_wen;
@@ -119,3 +122,14 @@ endmodule
 
 //amoswap.w
 
+//0x0cf4a7af  
+//rs1=s1
+//rs2=a5
+//rd=a5
+//regdata1=0000_0000_8001_2908
+//regdata2=0000_0000_0000_0001
+
+
+
+//把内存地址regdata1里面的数据写入rd
+//把数据regdata2写入内存地址regdata1里面

@@ -11,7 +11,7 @@ module pc(
     input wire  [63:0]   execute_i_mret_next_pc,
 
     input wire  [63:0]   fetch_i_next_pc,
-    output reg   [63:0]  pc
+    output reg  [63:0]   pc
 );
 
 // reg [63:0] real_pc;
