@@ -299,34 +299,34 @@ assign decode_o_system_info = {
 };
 
 assign decode_o_alu_info = {
-			     (inst_add  	| inst_addi ),  // 9
-			     (inst_sub                  ),  // 8
-			  	 (inst_sll  	| inst_slli ),
-			     (inst_slt  	| inst_slti ),
-			     (inst_sltu 	| inst_sltiu),  
-			     (inst_xor  	| inst_xori ),  
-			     (inst_srl  	| inst_srli ),  
-			     (inst_sra  	| inst_srai ),
-			     (inst_or   	| inst_ori  ),  
-			     (inst_and  	| inst_andi ),
-				 (inst_addw 	| inst_addiw),
-				 (inst_subw					),
-				 (inst_sllw 	| inst_slliw),
-				 (inst_srlw 	| inst_srliw),
-				 (inst_sraw 	| inst_sraiw), 
-				 (inst_mul  			    ),
-				 (inst_mulh 				),
-				 (inst_mulhsu				),
-				 (inst_mulhu				),
-				 (inst_mulw					),
-				 (inst_div					),
-				 (inst_divu					),
-				 (inst_divw					),
-				 (inst_divuw				),
-				 (inst_rem					),
-				 (inst_remu					),
-				 (inst_remw					),
-				 (inst_remuw				) 
+	(inst_add  	| inst_addi ),  // 9
+	(inst_sub                  ),  // 8
+	(inst_sll  	| inst_slli ),
+	(inst_slt  	| inst_slti ),
+	(inst_sltu 	| inst_sltiu),  
+	(inst_xor  	| inst_xori ),  
+	(inst_srl  	| inst_srli ),  
+	(inst_sra  	| inst_srai ),
+	(inst_or   	| inst_ori  ),  
+	(inst_and  	| inst_andi ),
+	(inst_addw 	| inst_addiw),
+	(inst_subw					),
+	(inst_sllw 	| inst_slliw),
+	(inst_srlw 	| inst_srliw),
+	(inst_sraw 	| inst_sraiw), 
+	(inst_mul  			    ),
+	(inst_mulh 				),
+	(inst_mulhsu				),
+	(inst_mulhu				),
+	(inst_mulw					),
+	(inst_div					),
+	(inst_divu					),
+	(inst_divw					),
+	(inst_divuw				),
+	(inst_rem					),
+	(inst_remu					),
+	(inst_remw					),
+	(inst_remuw				) 
 };
 assign decode_o_amo_info = {
 	inst_lrw		,	//19
@@ -401,32 +401,67 @@ regfile u_regfile(
 
 
 //------------------------------------------数据前递-begin-------------------------------------------------------------------
-wire regM_sel_mem_rdata 	= regM_i_opcode_info[3];
-wire regM_sel_alu_result    = regM_i_opcode_info[1] | regM_i_opcode_info[4] | regM_i_opcode_info[5] | regM_i_opcode_info[6]|
-							  regM_i_opcode_info[7] | regM_i_opcode_info[10] | regM_i_opcode_info[11];
+//regM_forwarding
+wire regM_forwarding_op_amo			=regM_i_opcode_info[13];
+wire regM_forwarding_op_csr			=regM_i_opcode_info[12];
+wire regM_forwarding_op_lui			=regM_i_opcode_info[11];
+wire regM_forwarding_op_auipc		=regM_i_opcode_info[10];
+wire regM_forwarding_op_jal			=regM_i_opcode_info[9];
+wire regM_forwarding_op_jalr		=regM_i_opcode_info[8];
+wire regM_forwarding_op_alu_reg		=regM_i_opcode_info[7];
+wire regM_forwarding_op_alu_regw	=regM_i_opcode_info[6];
+wire regM_forwarding_op_alu_imm		=regM_i_opcode_info[5];
+wire regM_forwarding_op_alu_immw	=regM_i_opcode_info[4];
+wire regM_forwarding_op_load		=regM_i_opcode_info[3];
+wire regM_forwarding_op_store 		=regM_i_opcode_info[2];
+wire regM_forwarding_op_branch 		=regM_i_opcode_info[1];
+wire regM_forwarding_op_system		=regM_i_opcode_info[0];
+//regW_forwarding
+wire regW_forwarding_op_amo			=regW_i_opcode_info[13];
+wire regW_forwarding_op_csr			=regW_i_opcode_info[12];
+wire regW_forwarding_op_lui			=regW_i_opcode_info[11];
+wire regW_forwarding_op_auipc		=regW_i_opcode_info[10];
+wire regW_forwarding_op_jal			=regW_i_opcode_info[9];
+wire regW_forwarding_op_jalr		=regW_i_opcode_info[8];
+wire regW_forwarding_op_alu_reg		=regW_i_opcode_info[7];
+wire regW_forwarding_op_alu_regw	=regW_i_opcode_info[6];
+wire regW_forwarding_op_alu_imm		=regW_i_opcode_info[5];
+wire regW_forwarding_op_alu_immw	=regW_i_opcode_info[4];
+wire regW_forwarding_op_load		=regW_i_opcode_info[3];
+wire regW_forwarding_op_store 		=regW_i_opcode_info[2];
+wire regW_forwarding_op_branch 		=regW_i_opcode_info[1];
+wire regW_forwarding_op_system		=regW_i_opcode_info[0];
 
-wire regW_sel_mem_rdata		= regW_i_opcode_info[3];
-wire regW_sel_pc			= regW_i_opcode_info[8] | regW_i_opcode_info[9];
-wire regW_sel_alu_result    = regW_i_opcode_info[1] | regW_i_opcode_info[4]  | regW_i_opcode_info[5] | regW_i_opcode_info[6]|
-							  regW_i_opcode_info[7] | regW_i_opcode_info[10] | regW_i_opcode_info[11];
-wire regW_sel_csr_rdata		= regW_i_opcode_info[12];
 
-assign decode_o_regdata1 = regE_i_reg_rd != 5'd0 && regE_i_reg_wen && regE_i_reg_rd == rs1 ? execute_i_alu_result 	: 
+wire regM_sel_mem_rdata 	= regW_forwarding_op_load;
+wire regM_sel_alu_result    = regM_forwarding_op_branch  |regM_forwarding_op_alu_immw | regM_forwarding_op_alu_imm	| regM_forwarding_op_alu_regw |
+							  regM_forwarding_op_alu_reg |regM_forwarding_op_auipc    | regM_forwarding_op_lui;
+
+wire regW_sel_mem_rdata		= regW_forwarding_op_load;
+wire regW_sel_pc			= regW_forwarding_op_jalr 	 | regW_forwarding_op_jal;
+wire regW_sel_alu_result    = regW_forwarding_op_branch  | regW_forwarding_op_alu_immw  | regW_forwarding_op_alu_imm	| regW_forwarding_op_alu_regw|
+							  regW_forwarding_op_alu_reg | regW_forwarding_op_auipc 	| regW_forwarding_op_lui;
+wire regW_sel_csr_rdata		= regW_forwarding_op_csr;
+
+
+assign decode_o_regdata1 = regE_i_reg_rd != 5'd0 && regE_i_reg_wen && regE_i_reg_rd == rs1 							? execute_i_alu_result 	: 
 						   regM_i_reg_rd != 5'd0 && regM_i_reg_wen && regM_i_reg_rd == rs1 && regM_sel_alu_result	? regM_i_alu_result     : 
 						   regM_i_reg_rd != 5'd0 && regM_i_reg_wen && regM_i_reg_rd == rs1 && regM_sel_mem_rdata  	? memory_i_mem_rdata 	: 
+
 						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs1 && regW_sel_alu_result 	? regW_i_alu_result 	: 
-						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs1 && regW_sel_mem_rdata	? regW_i_mem_rdata 		: 
+	   					   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs1 && regW_sel_mem_rdata	? regW_i_mem_rdata 		: 
 						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs1 && regW_sel_pc			? regW_i_pc + 64'd4     : 
 						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs1 && regW_sel_csr_rdata	? regW_i_csr_rdata1	    : regfile_o_regdata1; 
 
 
-assign decode_o_regdata2 = regE_i_reg_rd != 5'd0 && regE_i_reg_wen && regE_i_reg_rd == rs2 ? execute_i_alu_result 	: 
+assign decode_o_regdata2 = regE_i_reg_rd != 5'd0 && regE_i_reg_wen && regE_i_reg_rd == rs2 							? execute_i_alu_result 	: 
 						   regM_i_reg_rd != 5'd0 && regM_i_reg_wen && regM_i_reg_rd == rs2 && regM_sel_alu_result	? regM_i_alu_result     : 
 						   regM_i_reg_rd != 5'd0 && regM_i_reg_wen && regM_i_reg_rd == rs2 && regM_sel_mem_rdata  	? memory_i_mem_rdata 	: 
+
 						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs2 && regW_sel_alu_result 	? regW_i_alu_result 	: 
 						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs2 && regW_sel_mem_rdata     ? regW_i_mem_rdata 	: 
 						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs2 && regW_sel_pc			? regW_i_pc + 64'd4     : 
-						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs2 && regW_sel_pc			? regW_i_csr_rdata1     : regfile_o_regdata2; 
+						   regW_i_reg_rd != 5'd0 && regW_i_reg_wen && regW_i_reg_rd == rs2 && regW_sel_csr_rdata	? regW_i_csr_rdata1     : regfile_o_regdata2; 
 //------------------------------------------数据前递-end-------------------------------------------------------------------
 
 

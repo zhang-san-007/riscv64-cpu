@@ -234,12 +234,23 @@ void difftest_step(const commit_t *commit) {
     CPU_state ref_r;
     decode_t decode;
     instr_decode(&decode, commit);
-    if(decode.pc == 0x8000121c){
+    if(cpu.gpr[15] == 0x0000000080025000){
         isa_reg_display(&cpu, "debug");
-        npc_single_cycle();
-        npc_close_simulation();
-        Log("[NPC] Difftest 终止，请检查上述差异。\n");
-        exit(1);   
+        // npc_single_cycle();
+        // npc_single_cycle();
+        // npc_single_cycle();
+        // npc_single_cycle();
+        // npc_single_cycle();
+        // npc_single_cycle();
+        // npc_single_cycle();
+        // npc_single_cycle();
+        // npc_single_cycle();
+        // npc_single_cycle();
+        // npc_single_cycle();
+        // npc_single_cycle();
+        // npc_close_simulation();
+        // Log("[NPC] Difftest 终止，请检查上述差异。\n");
+        // exit(1);   
     }
 
     ref_difftest_exec(1);    
