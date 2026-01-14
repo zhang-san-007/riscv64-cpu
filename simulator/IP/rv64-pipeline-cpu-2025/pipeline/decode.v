@@ -433,7 +433,8 @@ wire regW_forwarding_op_branch 		=regW_i_opcode_info[1];
 wire regW_forwarding_op_system		=regW_i_opcode_info[0];
 
 
-wire regM_sel_mem_rdata 	= regW_forwarding_op_load;
+//我在这里改了
+wire regM_sel_mem_rdata 	= regM_forwarding_op_load;
 wire regM_sel_alu_result    = regM_forwarding_op_branch  |regM_forwarding_op_alu_immw | regM_forwarding_op_alu_imm	| regM_forwarding_op_alu_regw |
 							  regM_forwarding_op_alu_reg |regM_forwarding_op_auipc    | regM_forwarding_op_lui;
 

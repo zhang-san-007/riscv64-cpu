@@ -33,7 +33,7 @@ extern "C" uint64_t dpi_mem_read(uint64_t addr, int len, u64 pc) {
           return 32;
         }
         else if (addr != 0) {
-            fprintf(stderr, "[DPI mem_read error] Invalid address: 0x%016lx, len: %d, pc: 0x%016lx\n", addr, len, pc);
+//            fprintf(stderr, "[DPI mem_read error] Invalid address: 0x%016lx, len: %d, pc: 0x%016lx\n", addr, len, pc);
         }
         return 0;
     }
@@ -49,7 +49,7 @@ extern "C" void dpi_mem_write(uint64_t addr, uint64_t data, int len, u64 pc) {
 		pmem_write(addr, len, data);
     } else {
         // 非法写入尝试
-      fprintf(stderr, "[DPI mem_write error] Invalid address: 0x%016lx, data: 0x%016lx, len: %d, pc: 0x%016lx\n", addr, data, len, pc);
+//      fprintf(stderr, "[DPI mem_write error] Invalid address: 0x%016lx, data: 0x%016lx, len: %d, pc: 0x%016lx\n", addr, data, len, pc);
     }
 }
 

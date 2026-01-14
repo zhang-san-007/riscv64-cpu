@@ -30,7 +30,6 @@ static long load_img() {
   fseek(fp, 0, SEEK_SET);
   int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);
   assert(ret == 1);
-
   fclose(fp);
   return size;
 }
@@ -75,7 +74,7 @@ static const uint32_t img [] = {
 };
 
 void load_builded_img(){
- memcpy(guest_to_host(RESET_VECTOR), img, sizeof(img));
+  memcpy(guest_to_host(RESET_VECTOR), img, sizeof(img));
 }
 void dump_pmem_4kb();
 void dump_pmem_to_log();

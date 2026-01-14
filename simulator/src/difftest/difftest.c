@@ -57,17 +57,17 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
   Log("Difftest已打开");
 }
 
+
+
+
+
 static void display_diff_error(CPU_state *ref, u64 pc, u64 next_pc, const char *msg) {
     printf("\n%-9s\n", ANSI_FMT("DIFFTEST ERROR", ANSI_FG_YELLOW ANSI_BG_RED));         
-    //最近的20条指令
     instr_itrace_display();
-    //difftest出错信息
     printf("[NPC] 执行完 pc=[0x%016lx] 处的指令后出错。错误原因: %s%s%s\n", pc, ANSI_FG_RED, msg, ANSI_NONE);
-    //对pc进行对比
     bool pc_mismatch = (ref->pc != next_pc);
     const char* pc_color = pc_mismatch ? ANSI_FG_RED : "";
     printf("[NPC] PC 状态: %s%c [参考 REF.pc]=0x%016lx | [你的 DUT.pc]=0x%016lx%s\n", pc_color, pc_mismatch ? '*' : ' ', ref->pc, next_pc, ANSI_NONE);
-    //对reg进行比对
     printf("\n----------- 寄存器状态对比 (REF vs DUT) -----------\n");
     for (int i = 0; i < 32; i++) {
         bool mismatch = (ref->gpr[i] != cpu.gpr[i]);
@@ -75,7 +75,7 @@ static void display_diff_error(CPU_state *ref, u64 pc, u64 next_pc, const char *
         printf("%s%c [REF.%-3s]=0x%016lx | [DUT.%-3s]=0x%016lx%s\n", color, mismatch ? '*' : ' ', reg_name(i), ref->gpr[i], reg_name(i), cpu.gpr[i], ANSI_NONE);
     }
 
-    //模拟器终止
+
     npc_single_cycle();
     npc_close_simulation();
     Log("[NPC] Difftest 终止，请检查上述差异。\n");
@@ -234,24 +234,24 @@ void difftest_step(const commit_t *commit) {
     CPU_state ref_r;
     decode_t decode;
     instr_decode(&decode, commit);
-    if(cpu.gpr[15] == 0x0000000080025000){
-        isa_reg_display(&cpu, "debug");
-        // npc_single_cycle();
-        // npc_single_cycle();
-        // npc_single_cycle();
-        // npc_single_cycle();
-        // npc_single_cycle();
-        // npc_single_cycle();
-        // npc_single_cycle();
-        // npc_single_cycle();
-        // npc_single_cycle();
-        // npc_single_cycle();
-        // npc_single_cycle();
-        // npc_single_cycle();
-        // npc_close_simulation();
-        // Log("[NPC] Difftest 终止，请检查上述差异。\n");
-        // exit(1);   
-    }
+//     if(cpu.gpr[15] == 0x0000000080025000){
+// //        isa_reg_display(&cpu, "debug");
+//         // npc_single_cycle();
+//         // npc_single_cycle();
+//         // npc_single_cycle();
+//         // npc_single_cycle();
+//         // npc_single_cycle();
+//         // npc_single_cycle();
+//         // npc_single_cycle();
+//         // npc_single_cycle();
+//         // npc_single_cycle();
+//         // npc_single_cycle();
+//         // npc_single_cycle();
+//         // npc_single_cycle();
+//         // npc_close_simulation();
+//         // Log("[NPC] Difftest 终止，请检查上述差异。\n");
+//         // exit(1);   
+//     }
 
     ref_difftest_exec(1);    
     if(is_special_instr(&decode)){

@@ -101,7 +101,11 @@ void execute(uint64_t n){
     update_cpu_state();
 
     g_nr_guest_inst++;
-    IFDEF(CONFIG_DEBUG, instr_trace_log(commit.pc, commit.instr));
+    //每执行1kw条指令就打印一次
+    if(g_nr_guest_inst % 10000000 == 0){
+        printf("已经执行了%ld条指令\n", g_nr_guest_inst);
+    }
+//    IFDEF(CONFIG_DEBUG, instr_trace_log(commit.pc, commit.instr));
     IFDEF(CONFIG_ITRACE,   instr_itrace(commit.pc , commit.instr));
     IFDEF(CONFIG_DIFFTEST, difftest_step(&commit));  
   }
@@ -119,7 +123,6 @@ void statistic() {
     Log("Finish running in less than 1 us and can not calculate the simulation frequency");
   }
 }
-
 void cpu_exec(uint64_t n) {
   g_print_step = (n < MAX_INST_TO_PRINT); 
   switch (sim_state.state) {

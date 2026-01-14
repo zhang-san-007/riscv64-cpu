@@ -27,7 +27,6 @@ module ctrl(
 );
 
 wire inst_load          = regE_i_opcode_info[3];
-
 wire load_use           = (regE_i_reg_rd == decode_i_reg_rs1 || regE_i_reg_rd == decode_i_reg_rs2) && inst_load;
 wire branch_bubble      =  execute_i_branch_need_jump;
 wire mret_bubble        =  execute_i_mret_need_jump;
@@ -50,3 +49,10 @@ assign regE_stall       = 1'b0;
 assign regM_stall       = 1'b0;
 assign regW_stall       = 1'b0;
 endmodule
+
+
+//对于加载使用冒险
+//我在执行阶段的时候在ctrl里面检测到加载使用冒险，
+//这个时候后面两条指令正在执行decode阶段和fetch阶段
+
+//然后下一个节拍，我给regE注入一个bubble, 让regD和regF都stall一样，这样后面两条指令都还是在执行decode阶段和fetch阶段
