@@ -14,6 +14,13 @@
 //#define CONFIG_NPC_OPEN_SIM 1
 
 
-#define CONFIG_INS_TRACE 1
+//trace
+#define CONFIG_TRACE_LOG 1
+#define CONFIG_ITRACE 1
 
+//DPI-MMIO-DEBUG
+//#define CONFIG_DPI_MMIO_DEGBUG  1
+
+//difftest-MMIO-debug
+//#define CONFIG_DIFFTEST_MMIO_DEBUG 1
 

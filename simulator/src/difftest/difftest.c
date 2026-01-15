@@ -2,12 +2,14 @@
 #include "simulator_state.h"
 #include <dlfcn.h>
 #include <utils.h>
+#include <stdint.h>
+#include <assert.h>
 #include <common.h>
 #include <defs.h>
 #include <debug.h>
 #include <cpu.h>
 #include <riscv/decode.h>
-void isa_reg_display();
+
 
 void (*ref_difftest_memcpy)(paddr_t addr, void *buf, size_t n, bool direction) = NULL;
 void (*ref_difftest_regcpy)(void *dut, bool direction) = NULL;
@@ -59,8 +61,6 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
 
 
 
-
-
 static void display_diff_error(CPU_state *ref, u64 pc, u64 next_pc, const char *msg) {
     printf("\n%-9s\n", ANSI_FMT("DIFFTEST ERROR", ANSI_FG_YELLOW ANSI_BG_RED));         
     instr_itrace_display();
@@ -74,12 +74,7 @@ static void display_diff_error(CPU_state *ref, u64 pc, u64 next_pc, const char *
         const char* color = mismatch ? ANSI_FG_RED : "";
         printf("%s%c [REF.%-3s]=0x%016lx | [DUT.%-3s]=0x%016lx%s\n", color, mismatch ? '*' : ' ', reg_name(i), ref->gpr[i], reg_name(i), cpu.gpr[i], ANSI_NONE);
     }
-
-
-    npc_single_cycle();
-    npc_close_simulation();
-    Log("[NPC] Difftest 终止，请检查上述差异。\n");
-    exit(1);
+    sim_exit("[NPC] Difftest 终止，请检查上述差异。");
 }
 
 static void checkcsrs(CPU_state *ref, u64 pc, u64 next_pc) {
@@ -112,8 +107,6 @@ static void checkregs(CPU_state *ref, u64 pc, u64 next_pc) {
 
 }
 
-#include <stdint.h>
-#include <assert.h>
 
 
 
@@ -170,8 +163,9 @@ void load_store_info_dispaly(commit_t *commit, const char *msg){
 }
 
 static inline bool is_mmio_address(uint64_t addr) {
-    return (addr < 0x80000000) && (addr >= 0x02000000);
+    return (addr < 0x80000000) && (addr >= 0x10000000);
 }
+
 bool is_special_instr(const decode_t *decode) {
     const i32 load_store_bytes = (1 << (decode->func3 & 0x3));
     const u32 opcode  = decode->opcode;
@@ -189,13 +183,14 @@ bool is_special_instr(const decode_t *decode) {
     switch(decode->opcode){
         case op_load:
             if(is_mmio){
-//                printf("\033[1;33m[MMIO Load ]\033[0m PC: 0x%016lx | Instr: 0x%08x | Addr: 0x%016lx | Len: %d\n", pc, instr, mem_addr, load_store_bytes);
+                IFDEF(CONFIG_DIFFTEST_MMIO_DEBUG, log_write("\033[1;33m[MMIO Load ]\033[0m PC: 0x%016lx | Instr: 0x%08x | Addr: 0x%016lx | Len: %d\n", pc, instr, mem_addr, load_store_bytes));
                 special_instr = true;
             }
             break;
         case op_store:
             if(is_mmio){
-//                printf("\033[1;36m[MMIO Store]\033[0m PC: 0x%016lx | Instr: 0x%08x | Addr: 0x%016lx | WData: 0x%016lx | Len: %d\n", pc, instr, mem_addr, mem_wdata, load_store_bytes);
+//                printf("[MMIO Store]\033[0m PC: 0x%016lx | Instr: 0x%08x | Addr: 0x%016lx | WData: 0x%016lx | Len: %d\n", pc, instr, mem_addr, mem_wdata, load_store_bytes);
+                IFDEF(CONFIG_DIFFTEST_MMIO_DEBUG, log_write("\033[1;36m[MMIO Store]\033[0m PC: 0x%016lx | Instr: 0x%08x | Addr: 0x%016lx | WData: 0x%016lx | Len: %d\n", pc, instr, mem_addr, mem_wdata, load_store_bytes));
                 special_instr = true;
             }
             break;
@@ -230,28 +225,13 @@ void instr_decode(decode_t * decode, const commit_t *commit){
     decode->rd          = GET_RD    (instr);
 };
 
+void isa_reg_display(CPU_state *state, const char *msg);
 void difftest_step(const commit_t *commit) {
     CPU_state ref_r;
     decode_t decode;
     instr_decode(&decode, commit);
-//     if(cpu.gpr[15] == 0x0000000080025000){
-// //        isa_reg_display(&cpu, "debug");
-//         // npc_single_cycle();
-//         // npc_single_cycle();
-//         // npc_single_cycle();
-//         // npc_single_cycle();
-//         // npc_single_cycle();
-//         // npc_single_cycle();
-//         // npc_single_cycle();
-//         // npc_single_cycle();
-//         // npc_single_cycle();
-//         // npc_single_cycle();
-//         // npc_single_cycle();
-//         // npc_single_cycle();
-//         // npc_close_simulation();
-//         // Log("[NPC] Difftest 终止，请检查上述差异。\n");
-//         // exit(1);   
-//     }
+
+
 
     ref_difftest_exec(1);    
     if(is_special_instr(&decode)){

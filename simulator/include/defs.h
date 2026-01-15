@@ -21,40 +21,26 @@ void isa_reg_display(CPU_state *, const char *);
 #define pc_self  (cpu.pc)
 #define gpr(idx) (cpu.gpr[check_reg_idx(idx)])
 #define csr(idx) (cpu.csr[check_csr_idx(idx)])
+void 		get_cpu_state_from_npc();
+void 		init_regex();
 
 
 
 
 //init_monitor.c
 void 		init_monitor(int , char **);
-
 void 		init_log(const char *log_file);
 void 		init_difftest(char *ref_so_file, long img_size, int port);
 void 		init_disasm(const char *triple);
 void 		init_trace();
+void 		disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
 
 //timer.c
 void		init_rand();
 
 
 
-//reg.c
-void    	isa_reg_display();
-void 		get_cpu_state_from_npc();
-void 		init_regex();
-
-word_t 		expr(char *e, bool *success);
-void 		get_memory_val(paddr_t mem_addr, int length);
-static 		word_t arg2val(char *arg);
-
-//npc-dpi
-
-
-
 //disasm.cc
-void 		init_disasm(const char *triple);
-void 		disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
-
 void        difftest_step(const commit_t *commit);
 bool        isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc);
 
@@ -76,14 +62,17 @@ void 	 init_mem();
 uint8_t* guest_to_host(paddr_t paddr);
 word_t	 pmem_read(paddr_t addr, int len);
 void	 pmem_write(paddr_t addr, int len, word_t data);
-
 //trace----->instr_trace
 void     instr_trace(u64 pc, u32 commit_instr);
 void     instr_itrace_display();
 void     instr_itrace(u64 pc, u32 instr);
-void instr_trace_log(u64 pc, u32 instr);
+void     instr_trace_log(u64 pc, u32 instr);
 
 //trace---->instr_profile
 void instr_coverage_display();
 void mark_instr_executed(u32 instr);
+
+//sim
+void     sim_exit(const char *msg);
+
 #endif

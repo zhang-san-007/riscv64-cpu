@@ -76,3 +76,19 @@ void instr_itrace_display() {
     }    
     printf("--- [ End of Trace ] ---\n");
 }
+
+
+// 1
+// 2
+// 3 
+// 4
+// 5
+// 6 ----> pc记录下来， reg, csr, memory ---->spike[csr]
+// 7 ----> 出错      
+
+
+
+//1. 
+//2. 实现那条指令
+//3. 保存CPU状态，出错之前的那条指令
+//4. xv6跑到哪了

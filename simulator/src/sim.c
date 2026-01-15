@@ -12,11 +12,15 @@
 
 extern CPU_state  cpu;
 extern SIMState   sim_state;
-uint64_t          g_nr_guest_inst = 0;
-static uint64_t   g_timer = 0; // unit: us
+u64               g_nr_guest_inst = 0;
+static u64        g_timer = 0; // unit: us
 static bool       g_print_step = false;
-#define MAX_INST_TO_PRINT 100
+commit_t commit;
 
+#define MAX_INST_TO_PRINT 100
+#define MAX_GUEST_INST 30000
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
 
 static TOP_NAME dut;  			    //CPU
 static VerilatedFstC *m_trace = NULL;  //仿真波形
@@ -73,7 +77,7 @@ void npc_init() {
 }
 
 
-commit_t commit;
+
 
 void get_commit_info(){
     commit.pc         = dut.commit_pc;
@@ -83,6 +87,14 @@ void get_commit_info(){
     commit.mem_rdata  = dut.commit_mem_rdata;
     commit.mem_wdata  = dut.commit_mem_wdata;
 }
+
+bool inst_exec_one_million(){
+  return (g_nr_guest_inst % 1000000 == 0);
+}
+  
+
+
+
 
 //si 1执行一条指令就确定是一次commit, 而不是多次clk
 void execute(uint64_t n){
@@ -101,13 +113,24 @@ void execute(uint64_t n){
     update_cpu_state();
 
     g_nr_guest_inst++;
-    //每执行1kw条指令就打印一次
-    if(g_nr_guest_inst % 10000000 == 0){
-        printf("已经执行了%ld条指令\n", g_nr_guest_inst);
+
+    // if(commit.pc == 0x80000348 && commit.instr == 0xff010113){
+    //     isa_reg_display(&cpu, "debug");
+    //     sim_exit("debug");
+    // }
+    if(g_nr_guest_inst == MAX_GUEST_INST ){
+      sim_exit("执行了 " STR(MAX_GUEST_INST) " 条指令 - for debug");
+    } 
+
+//    80000348
+
+    if(inst_exec_one_million()){
+      printf("已经执行了%ld条指令\n", g_nr_guest_inst);
     }
-//    IFDEF(CONFIG_DEBUG, instr_trace_log(commit.pc, commit.instr));
-    IFDEF(CONFIG_ITRACE,   instr_itrace(commit.pc , commit.instr));
-    IFDEF(CONFIG_DIFFTEST, difftest_step(&commit));  
+
+    IFDEF(CONFIG_TRACE_LOG, instr_trace_log(commit.pc, commit.instr));
+    IFDEF(CONFIG_ITRACE,    instr_itrace(commit.pc , commit.instr));
+    IFDEF(CONFIG_DIFFTEST,  difftest_step(&commit));  
   }
 }
 
@@ -115,7 +138,7 @@ void statistic() {
   npc_close_simulation();
   #define NUMBERIC_FMT MUXDEF(CONFIG_TARGET_AM, "%", "%'") PRIu64
   Log("host time spent = " NUMBERIC_FMT " us", g_timer);
-  Log("你的处理器执行了" NUMBERIC_FMT "条指令(不含nopc指令)", g_nr_guest_inst);
+  Log("你的处理器执行了" NUMBERIC_FMT "条指令(不含nop指令)", g_nr_guest_inst);
   Log("你的处理器执行了" NUMBERIC_FMT "个时钟周期", clk_count);
   if (g_timer > 0) {
     Log("你处理器的执行频率是" NUMBERIC_FMT " instr/s", g_nr_guest_inst * 1000000 / g_timer);
@@ -152,3 +175,10 @@ void cpu_exec(uint64_t n) {
   }
 }
 //我想的就是复位的时候
+
+void sim_exit(const char *msg){
+    npc_single_cycle();
+    npc_close_simulation();
+    Log("%s\n", msg);
+    exit(1);
+}
