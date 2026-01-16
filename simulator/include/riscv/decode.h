@@ -12,9 +12,21 @@
 #define GET_FUNC3(i)   (((i) >> 12) & 0x7)     // [14:12]
 #define GET_FUNC7(i)   (((i) >> 25) & 0x7f)    // [31:25]
 
-#define op_load  0b0000011
-#define op_store 0b0100011
-#define op_csr   0b1110011
+#define op_lui         0b0110111
+#define op_auipc       0b0010111
+#define op_jalr        0b1100111
+#define op_jal         0b1101111
+#define op_alu_reg     0b0110011
+#define op_alu_reg_w   0b0111011
+#define op_alu_imm     0b0010011
+#define op_alu_imm_w   0b0011011
+#define op_load        0b0000011
+#define op_store       0b0100011
+#define op_branch      0b1100011
+#define op_system      0b1110011
+#define op_csr         0b1110011
+#define op_fence       0b0001111
+#define op_amo         0b0101111
 
 
 #define func3000 0b000

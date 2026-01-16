@@ -1,5 +1,5 @@
 #include <common.h>
-#include <riscv/decode.h>
+#include <riscv.h>
 
 void instr_decode(decode_t * decode, u32 instr){    
     decode->opcode      = GET_OPCODE(instr);     //GET_OPCODE

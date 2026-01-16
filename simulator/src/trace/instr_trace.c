@@ -1,34 +1,5 @@
-#include <cpu.h>
-
-#include <sim_state.h>
 #include <common.h>
 #include <defs.h>
-
-#include <utils.h>
-
-
-
-//只使用一次的指令追踪，这个
-#define instr_max_size 128
-void instr_trace(u64 pc, u32 instr) {
-    char inst_str[instr_max_size];
-    disassemble(inst_str,instr_max_size, pc, (u8 *)&instr, 8);
-    printf("处理器执行了pc=[0x%lx]处的指令instr=[0x%08x], 其反汇编=[%s]\n", pc, instr, inst_str);
-}
-
-extern FILE *log_fp;
-bool log_enable();
-
-void instr_trace_log(u64 pc, u32 instr){
-    char inst_str[instr_max_size];
-    disassemble(inst_str,instr_max_size, pc, (u8 *)&instr, 8);
-    if (log_enable()) {
-        fprintf(log_fp, "处理器执行了pc=[0x%lx]处的指令instr=[0x%08x], 其反汇编=[%s]\n", pc, instr, inst_str);
-        fflush(log_fp); // 非常重要：确保在报错或崩溃前日志已经刷入磁盘
-    }
-}
-
-
 
 #define ITRACE_POOL_SIZE 20
 #define INST_STR_MAX 128
@@ -40,6 +11,26 @@ typedef struct {
 static TraceEntry itrace_pool[ITRACE_POOL_SIZE];
 static int itrace_ptr = 0;      // 下一个写入位置
 static bool pool_full = false;  // 标记是否已写满过一轮
+
+#define instr_max_size 128
+void instr_trace(u64 pc, u32 instr) {
+    char inst_str[instr_max_size];
+    disassemble(inst_str,instr_max_size, pc, (u8 *)&instr, 8);
+    printf("处理器执行了pc=[0x%lx]处的指令instr=[0x%08x], 其反汇编=[%s]\n", pc, instr, inst_str);
+}
+
+
+
+void instr_trace_log(u64 pc, u32 instr){
+    char inst_str[instr_max_size];
+    disassemble(inst_str,instr_max_size, pc, (u8 *)&instr, 8);
+    if (log_enable()) {
+        fprintf(log_fp, "处理器执行了pc=[0x%lx]处的指令instr=[0x%08x], 其反汇编=[%s]\n", pc, instr, inst_str);
+        fflush(log_fp); // 非常重要：确保在报错或崩溃前日志已经刷入磁盘
+    }
+}
+
+
 
 void instr_itrace(u64 pc, u32 instr) {
 //    mark_instr_executed(instr);

@@ -1,6 +1,6 @@
 #include <types.h>
 
-extern u64 g_nr_guest_inst;
+
 
 u64 g_nr_guest_inst = 0;
 void update_instr_count(){

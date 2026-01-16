@@ -1,14 +1,8 @@
 
-#include <sim_state.h>
 #include <dlfcn.h>
-#include <utils.h>
-#include <stdint.h>
-#include <assert.h>
 #include <common.h>
 #include <defs.h>
-#include <debug.h>
-
-#include <riscv/riscv.h>
+#include <riscv.h>
 
 
 
@@ -19,9 +13,6 @@ void (*ref_difftest_raise_intr)(uint64_t NO) = NULL;
 void isa_reg_display(CPU_state *state, const char *msg);
 
 #ifdef CONFIG_DIFFTEST
-extern CPU_state cpu;
-extern SIMState sim_state;
-
 
 void init_difftest(char *ref_so_file, long img_size, int port) {
   assert(ref_so_file != NULL);

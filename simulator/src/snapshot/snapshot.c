@@ -1,11 +1,8 @@
-
-#include <debug.h>
+#include <common.h>
+#include <defs.h>
 
 #include <npc.h>
 
-#include <sim_state.h>
-#include <common.h>
-#include <defs.h>
 
 // 固定快照文件名
 #define SNAPSHOT_FILE "snapshot/arch_snapshot.bin"
