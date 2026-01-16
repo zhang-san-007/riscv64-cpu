@@ -1,12 +1,9 @@
 #include <cpu.h>
-#include <cstdint>
-#include <simulator_state.h>
+
+#include <sim_state.h>
 #include <common.h>
 #include <defs.h>
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
 #include <utils.h>
 
 

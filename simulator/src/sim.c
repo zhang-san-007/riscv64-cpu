@@ -1,4 +1,6 @@
-#include <common.h>
+#include <common.h> //types.h
+
+#include <sim_state.h>
 #include <defs.h>
 #include <debug.h>
 #include <sys/types.h>
@@ -6,21 +8,27 @@
 #include <verilated_vcd_c.h>
 #include "verilated_fst_c.h"
 #include <npc.h>
-#include <simulator_state.h>
-#include <common.h>
 #include <defs.h>
+#include <riscv/cpu.h>
+#include <difftest/difftest.h>
+#include <difftest/commit.h>
 
-extern CPU_state  cpu;
-extern SIMState   sim_state;
-u64               g_nr_guest_inst = 0;
-static u64        g_timer = 0; // unit: us
-static bool       g_print_step = false;
-commit_t commit;
-
-#define MAX_INST_TO_PRINT 100
-#define MAX_GUEST_INST 30000
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
+#define MAX_INST_TO_PRINT 100
+#define MAX_GUEST_INST 30000
+
+
+//全局变量
+difftest_t dut_diff;
+
+extern uint8_t pmem[CONFIG_MSIZE];
+extern CPU_state  cpu;
+extern SIMState   sim_state;
+static u64        g_timer = 0; // unit: us
+static bool       g_print_step = false;
+
+
 
 static TOP_NAME dut;  			    //CPU
 static VerilatedFstC *m_trace = NULL;  //仿真波形
@@ -40,11 +48,16 @@ void npc_close_simulation(){
 }
 
 
+
+
+
 void update_cpu_state(){
   cpu.pc = dut.cur_pc;
   memcpy(&cpu.gpr[0], reg_ptr, 8 * 32);
   memcpy(&cpu.csr[0], csr_ptr, 8 * 4096);
 }
+
+
 void npc_single_cycle() {
   dut.clk = 0;  
   dut.eval();   
@@ -62,12 +75,13 @@ void npc_reset(int n) {
 
 
 
-
 void npc_init() {
   IFDEF(CONFIG_NPC_OPEN_SIM, npc_open_simulation());  
-  npc_reset(1);
-  update_cpu_state();
-  if(cpu.pc != 0x80000000){
+  npc_reset(1);  
+  update_cpu_state(); //更新这个CPU状态，是为了后面同步给difftest
+
+  printf("dut.commit_pc = %ld", dut.commit_pc);
+    if(dut.cur_pc != 0x80000000){
     npc_close_simulation();
     printf("处理器的值目前为pc=0x%lx, 处理器初始化/复位之后, PC值应该为0x80000000\n", cpu.pc);
     printf("处理器初始化/复位的PC值不正确, 程序退出\n");
@@ -79,58 +93,42 @@ void npc_init() {
 
 
 
-void get_commit_info(){
-    commit.pc         = dut.commit_pc;
-    commit.next_pc    = dut.commit_next_pc;
-    commit.instr      = dut.commit_instr;
-    commit.mem_addr   = dut.commit_mem_addr;
-    commit.mem_rdata  = dut.commit_mem_rdata;
-    commit.mem_wdata  = dut.commit_mem_wdata;
+void check_ebreak(const commit_t *commit){
+  if(commit->instr == inst_ebreak){
+    instr_trace(    commit->pc , commit->instr);
+    printf("由于仿真框架将[ebreak]指令看作是程序结束的指令，执行[ebreak]指令之后，我们退出程序\n");
+    sim_state.state = SIM_END;
+  }
+
 }
-
-bool inst_exec_one_million(){
-  return (g_nr_guest_inst % 1000000 == 0);
-}
-  
-
-
-
 
 //si 1执行一条指令就确定是一次commit, 而不是多次clk
 void execute(uint64_t n){
   for (   ;n > 0; n --) {
+    CPU_state gold_cpu;
+    memcpy(&gold_cpu, &cpu, sizeof(CPU_state));
+
     while(dut.commit != 1){      
       npc_single_cycle();
     }
-    get_commit_info();
-    if(commit.instr == 0x00100073){
-      instr_trace(    commit.pc , commit.instr);
-      printf("由于仿真框架将[ebreak]指令看作是程序结束的指令，执行[ebreak]指令之后，我们退出程序\n");
-      sim_state.state = SIM_END;
-      break;
-    }
-    npc_single_cycle();                             
+    // get_commit_info(&dut_diff.commit, &dut);
+    // get_decode_info(&dut_diff.decode, dut_diff.commit.instr);
+
+    
+
+    npc_single_cycle();                  
     update_cpu_state();
+    // get_cpu_info  (&dut_diff.cpu, cpu);
 
-    g_nr_guest_inst++;
+    
 
-    // if(commit.pc == 0x80000348 && commit.instr == 0xff010113){
-    //     isa_reg_display(&cpu, "debug");
-    //     sim_exit("debug");
+    // if(inst_exec_one_million()){
+    //   printf("已经执行了%ld条指令\n", g_nr_guest_inst);
     // }
-    if(g_nr_guest_inst == MAX_GUEST_INST ){
-      sim_exit("执行了 " STR(MAX_GUEST_INST) " 条指令 - for debug");
-    } 
-
-//    80000348
-
-    if(inst_exec_one_million()){
-      printf("已经执行了%ld条指令\n", g_nr_guest_inst);
-    }
-
-    IFDEF(CONFIG_TRACE_LOG, instr_trace_log(commit.pc, commit.instr));
-    IFDEF(CONFIG_ITRACE,    instr_itrace(commit.pc , commit.instr));
-    IFDEF(CONFIG_DIFFTEST,  difftest_step(&commit));  
+    // IFDEF(CONFIG_TRACE_LOG, instr_trace_log(commit.pc, commit.instr));
+    // IFDEF(CONFIG_ITRACE,    instr_itrace(commit.pc , commit.instr));
+    // IFDEF(CONFIG_DIFFTEST,  difftest_step(&commit));  
+    
   }
 }
 

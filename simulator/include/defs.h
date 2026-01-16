@@ -1,10 +1,15 @@
 #ifndef  DEFS_H_
 #define  DEFS_H_
-#include <cpu.h>
+#include <riscv/riscv.h>
 #include <common.h>
+#include <difftest.h>
+
+extern u64 *reg_ptr;
+extern u64 *csr_ptr;
+
 void 		engine_start();
 int  		is_exit_status_bad();
-void set_sim_state(int state, vaddr_t pc, int halt_ret);
+void set_sim_state(int state, u64 pc, int halt_ret);
 #define SIMTRAP(thispc, code) set_sim_state(SIM_END, thispc, code)
 
 
@@ -23,7 +28,6 @@ void isa_reg_display(CPU_state *, const char *);
 #define csr(idx) (cpu.csr[check_csr_idx(idx)])
 void 		get_cpu_state_from_npc();
 void 		init_regex();
-
 
 
 
@@ -69,10 +73,15 @@ void     instr_itrace(u64 pc, u32 instr);
 void     instr_trace_log(u64 pc, u32 instr);
 
 //trace---->instr_profile
-void instr_coverage_display();
-void mark_instr_executed(u32 instr);
+void    instr_coverage_display();
+void    mark_instr_executed(u32 instr);
 
 //sim
 void     sim_exit(const char *msg);
 
+//snapshot
+bool take_arch_snapshot   (const CPU_state *, const uint8_t *);
+bool restore_arch_snapshot(CPU_state *, uint8_t *);
+
+extern u64 g_nr_guest_inst;
 #endif

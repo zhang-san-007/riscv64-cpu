@@ -5,7 +5,7 @@
 #include "verilated_dpi.h" 
 extern CPU_state cpu; 
 extern u64 *reg_ptr;
-
+extern u64 *csr_ptr;
 
 extern "C" void dpi_ebreak(){
 	printf("下一个要执行的指令是ebreak\n");
@@ -20,7 +20,7 @@ extern "C" uint32_t dpi_instr_mem_read(uint64_t addr){
 	else{
 		printf("访问的地址是%lx，超过物理内存界限\n", addr);
 		return 0x0;
-    }
+  }
 }
 
 

@@ -1,7 +1,7 @@
 #ifndef __DEBUG_H__
 #define __DEBUG_H__
 
-#include <stdio.h> //stdio.h方便别人debug
+#include <stdio.h> 
 #include <macro.h>
 #include <utils.h>
 #include <assert.h>

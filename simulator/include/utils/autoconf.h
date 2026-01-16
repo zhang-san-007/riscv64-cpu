@@ -1,9 +1,3 @@
-/*
- *
- * Automatically generated file; DO NOT EDIT.
- * NEMU Configuration Menu
- *
- */
 #define CONFIG_PC_RESET_OFFSET 0x0
 #define CONFIG_RTC_MMIO 0xa0000048
 #define CONFIG_MSIZE 0x8000000

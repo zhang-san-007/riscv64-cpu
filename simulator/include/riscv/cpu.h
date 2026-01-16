@@ -3,12 +3,17 @@
 
 #include <common.h>
 #include <debug.h>
+#include <types.h>
 
 typedef struct {
   u64 gpr[GPR_NUM];
   u64 pc;
   u64 csr[CSR_NUM];
+  
 } CPU_state;
+
+
+
 
 typedef struct {
     uint32_t id;

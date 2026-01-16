@@ -5,6 +5,10 @@
 #include <common.h>
 #include <defs.h>
 
+extern uint8_t pmem[CONFIG_MSIZE];
+extern CPU_state  cpu;
+
+
 static void welcome() {
   Log("Build time: %s, %s", __TIME__, __DATE__);
   printf("Welcome to %s-npc!\n", ANSI_FMT(str(__GUEST_ISA__), ANSI_FG_YELLOW ANSI_BG_RED));
@@ -78,6 +82,7 @@ void load_builded_img(){
 }
 void dump_pmem_4kb();
 void dump_pmem_to_log();
+
 void init_simulator(int argc, char **argv){
   parse_args(argc, argv);
   init_rand();
@@ -85,14 +90,13 @@ void init_simulator(int argc, char **argv){
   init_mem();
   load_builded_img();
   long img_size = load_img();
+//  restore_arch_snapshot(&cpu, pmem);
   npc_init();
 
   init_difftest(diff_so_file,img_size, difftest_port);
   init_disasm("riscv64-pc-linux-gnu");
   welcome();
 }
-
-
 
 int main(int argc, char **argv){
   printf("\n %s\n", ANSI_FMT(str(__GUEST_ISA__), ANSI_FG_YELLOW ANSI_BG_RED));

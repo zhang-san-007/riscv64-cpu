@@ -1,53 +1,44 @@
 module memory(
-    input wire clk,
-    input wire rst,
-    input wire  [63:0]   regM_i_pc,     //for debug
-    input wire  [19:0]   regM_i_amo_info,
-    input wire  [10:0]   regM_i_load_store_info,
-    input wire  [63:0]   regM_i_alu_result,
-    input wire  [63:0]   regM_i_regdata2,
-    input wire  [63:0]   regM_i_regdata1,
-    output wire [63:0]   memory_o_mem_rdata
+    input  wire  clk,
+    input  wire  rst,
+    input  wire  [63:0]   regM_i_pc,     //for debug
+    input  wire  [19:0]   regM_i_amo_info,
+    input  wire  [10:0]   regM_i_load_store_info,
+    input  wire  [63:0]   regM_i_alu_result,
+    input  wire  [63:0]   regM_i_regdata2,
+    input  wire  [63:0]   regM_i_regdata1,
+
+//    output wire           memory_o_mem_rw
+    output wire  [63:0]   memory_o_mem_rdata
 );
 
 import "DPI-C" function void    dpi_mem_write(input longint addr, input longint data, int len, input longint pc);
 import "DPI-C" function longint dpi_mem_read (input longint addr, input int len,               input longint pc);
 
+wire inst_lrw      = regM_i_amo_info[19];
+wire inst_scw      = regM_i_amo_info[18];
 wire inst_amoswapw = regM_i_amo_info[17];
+wire inst_amoaddw  = regM_i_amo_info[16];
+wire inst_amoxorw  = regM_i_amo_info[15];
+wire inst_amoorw   = regM_i_amo_info[14];
+wire inst_amominw  = regM_i_amo_info[13];
+wire inst_amomaxw  = regM_i_amo_info[12];
+wire inst_amominuw = regM_i_amo_info[11];
+wire inst_amomaxuw = regM_i_amo_info[10];
+wire inst_lrd      = regM_i_amo_info[9];
+wire inst_scd      = regM_i_amo_info[8];
+wire inst_amoswapd = regM_i_amo_info[7];
+wire inst_amoaddd  = regM_i_amo_info[6];
+wire inst_amoxord  = regM_i_amo_info[5];
+wire inst_amoord   = regM_i_amo_info[4];
+wire inst_amomind  = regM_i_amo_info[3];
+wire inst_amomaxd  = regM_i_amo_info[2];
+wire inst_amominud = regM_i_amo_info[1];
+wire inst_amomaxud = regM_i_amo_info[0];
 
-// assign decode_o_amo_info = {
-// 	inst_lrw		,	//19
-// 	inst_scw	  	,	//18
-// 	inst_amoswapw	,	//17
-// 	inst_amoaddw	,	//16
-// 	inst_amoxorw	,	//15
-// 	inst_amoorw		,	//14
-// 	inst_amominw	,	//13
-// 	inst_amomaxw	,	//12
-// 	inst_amominuw	,	//11
-// 	inst_amomaxuw	,	//10
-// 	inst_lrd		,	//9
-// 	inst_scd		,	//8
-// 	inst_amoswapd	,	//7
-// 	inst_amoaddd	,	//6
-// 	inst_amoxord	,	//5
-// 	inst_amoord		,	//4
-// 	inst_amomind	,	//3
-// 	inst_amomaxd	,	//2
-// 	inst_amominud	,	//1
-// 	inst_amomaxud		//0
-// };
 
 wire [63:0] mem_addr  = (inst_amoswapw) ? regM_i_regdata1 : regM_i_alu_result;
 wire [63:0] mem_wdata = regM_i_regdata2;
-
-
-
-
-// regdata1作为内存地址
-// 1. 把内存地址里面的读出来的数据rd
-// 2. 把regdata2写入该地址里面去
-
 
 wire inst_lb    =   regM_i_load_store_info[10];
 wire inst_lh    =   regM_i_load_store_info[9 ];

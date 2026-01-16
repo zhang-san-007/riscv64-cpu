@@ -31,7 +31,7 @@ CSRCS = $(shell find $(abspath $(SRC_DIR)) -name "*.c" -o -name "*.cpp" -o -name
 
 INC_DIR  := $(SIM_HOME)/include
 
-INC_PATH = $(INC_DIR) $(INC_DIR)/utils 
+INC_PATH = $(INC_DIR) $(INC_DIR)/utils $(INC_DIR)/riscv $(INC_DIR)/difftest 
 
 LDFLAGS += -lreadline -lhistory -ldl -pie $(shell llvm-config --libs)
 

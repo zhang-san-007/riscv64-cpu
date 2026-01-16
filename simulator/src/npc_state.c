@@ -1,5 +1,5 @@
 #include <common.h>
-#include <simulator_state.h>
+#include <sim_state.h>
 
 SIMState sim_state = {.state = SIM_STOP};
 
@@ -9,7 +9,7 @@ int is_exit_status_bad() {
   return !good;
 }
 
-void set_sim_state(int state, vaddr_t pc, int halt_ret) {
+void set_sim_state(int state, u64 pc, int halt_ret) {
   //difftest_skip_ref();
   sim_state.state = state;
   sim_state.halt_pc = pc;
