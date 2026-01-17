@@ -7,6 +7,7 @@ u64 *reg_ptr = NULL;
 u64 *csr_ptr = NULL;
 
 
+extern TOP_NAME dut;
 
 const char *regs[] = {
   "$0", "ra", "sp",  "gp",  "tp", "t0", "t1", "t2",
@@ -29,8 +30,9 @@ const char* reg_name(int idx) {
 }
 
 
-void update_cpu_state(const TOP_NAME *dut){
-  cpu.pc = dut->cur_pc;
+
+void update_cpu_state(){
+  cpu.pc  = dut.cur_pc;
   memcpy(&cpu.gpr[0], reg_ptr, 8 * 32);
   memcpy(&cpu.csr[0], csr_ptr, 8 * 4096);
 }

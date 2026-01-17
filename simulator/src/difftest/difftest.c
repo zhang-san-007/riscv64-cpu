@@ -46,7 +46,10 @@ static void display_diff_error(CPU_state *ref, u64 pc, u64 next_pc, const char *
     printf("[NPC] 执行完 pc=[0x%016lx] 处的指令后出错。错误原因: %s%s%s\n", pc, ANSI_FG_RED, msg, ANSI_NONE);
     bool pc_mismatch = (ref->pc != next_pc);
     const char* pc_color = pc_mismatch ? ANSI_FG_RED : "";
+
+
     printf("[NPC] PC 状态: %s%c [参考 REF.pc]=0x%016lx | [你的 DUT.pc]=0x%016lx%s\n", pc_color, pc_mismatch ? '*' : ' ', ref->pc, next_pc, ANSI_NONE);
+
     printf("\n----------- 寄存器状态对比 (REF vs DUT) -----------\n");
     for (int i = 0; i < 32; i++) {
         bool mismatch = (ref->gpr[i] != cpu.gpr[i]);
@@ -55,6 +58,8 @@ static void display_diff_error(CPU_state *ref, u64 pc, u64 next_pc, const char *
     }
     sim_exit("[NPC] Difftest 终止，请检查上述差异。");
 }
+
+
 
 static void checkcsrs(CPU_state *ref, u64 pc, u64 next_pc) {
     for (int i = 0; i < NR_TARGET_CSR; i++) {
@@ -70,6 +75,7 @@ static void checkcsrs(CPU_state *ref, u64 pc, u64 next_pc) {
         }
     }
 }
+
 static void checkregs(CPU_state *ref, u64 pc, u64 next_pc) {
     if (next_pc != ref->pc) {
         display_diff_error(ref, pc, next_pc, "PC 出现不一致");
@@ -96,42 +102,39 @@ static inline bool is_mmio_address(uint64_t addr) {
     return (addr < 0x80000000) && (addr >= 0x10000000);
 }
 
-bool is_special_instr(const decode_t *decode) {
-    // const i32 load_store_bytes = (1 << (decode->func3 & 0x3));
-    // const u32 opcode  = decode->opcode;
-    // const u32 func3   = decode->func3;
-    // const u32 csr_id  = decode->csr_id;
-    // //commit
-    // // const u64 pc         = decode->pc;
-    // // const u32 instr      = decode->instr;
-    // // const u64 mem_addr   = decode->mem_addr;
-    // // const u64 mem_wdata  = decode->mem_wdata;
-    // // const u64 mem_rdata  = decode->mem_rdata;
 
-    // bool is_mmio = is_mmio_address(mem_addr);
-    // bool special_instr = false;;
-    // switch(decode->opcode){
-    //     case op_load:
-    //         if(is_mmio){
-    //             IFDEF(CONFIG_DIFFTEST_MMIO_DEBUG, log_write("[1;33m[MMIO Load ] [0m PC: 0x%016lx | Instr: 0x%08x | Addr: 0x%016lx | Len: %d\n", pc, instr, mem_addr, load_store_bytes));
-    //             special_instr = true;
-    //         }
-    //         break;
-    //     case op_store:
-    //         if(is_mmio){
-    //             IFDEF(CONFIG_DIFFTEST_MMIO_DEBUG, log_write("[1;36m[MMIO Store] [0m PC: 0x%016lx | Instr: 0x%08x | Addr: 0x%016lx | WData: 0x%016lx | Len: %d\n", pc, instr, mem_addr, mem_wdata, load_store_bytes));
-    //             special_instr = true;
-    //         }
-    //         break;
-    //     case op_csr:
-    //         // if(func3  == func3010 && csr_id == timer) {
-    //         //     special_instr = true;
-    //         // }
-    //         break;  
-    // default:
-    //         break;
-    // }
-    // return special_instr;
+
+static inline void log_mmio(const commit_t *c, bool is_load) {
+    #ifdef CONFIG_DIFFTEST_MMIO_DEBUG
+        const u32 func3 = GET_FUNC3(c->instr);
+        const i32 len   = (1 << (func3 & 0x3));
+        if (is_load)
+            log_write("[1;33m[MMIO Load ] [0m PC: 0x%016lx | Addr: 0x%016lx | Len: %d\n", c->pc, c->mem_addr, len);
+        else
+            log_write("[1;36m[MMIO Store] [0m PC: 0x%016lx | Addr: 0x%016lx | WData: 0x%016lx | Len: %d\n", c->pc, c->mem_addr, c->mem_wdata, len);
+    #endif
+}
+
+bool is_special_instr(const commit_t *commit) {
+    const u32 opcode = GET_OPCODE(commit->instr);    
+    const u32 func3 = GET_FUNC3(commit->instr);            
+    const u32 csr_id = GET_CSR_ID(commit->instr);
+
+    if (opcode == op_system && func3 != 0) { 
+        return csr_id == timer;
+    }
+
+    bool is_load  = (opcode == op_load);
+    bool is_store = (opcode == op_store);
+
+    if (is_load || is_store) {
+        if (is_mmio_address(commit->mem_addr)) {
+            log_mmio(commit, is_load);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 
@@ -140,23 +143,22 @@ void check_load_store_instr(){
 
 
 
-
-void difftest_step(const commit_t *commit) {
+decode_t decode;
+void difftest_step(const commit_t * commit) {
     CPU_state ref_r;
-    decode_t decode;
-//    instr_decode(&decode, commit);
-
     ref_difftest_exec(1);    
-    if(is_special_instr(&decode)){
-//        cpu.pc=decode.next_pc;
+
+    //如果是mmio和特殊指令，会让spike直接跳过，把CPU的值直接赋值给spike，相当于spike执行了对应的指令
+    if(is_special_instr(commit)){
+        cpu.pc= commit->next_pc;
         ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
     }
     ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
-    check_load_store_instr();
-    // checkregs(&ref_r, decode.pc, decode.next_pc);
-    // checkcsrs(&ref_r, decode.pc, decode.next_pc);
-}
 
+    check_load_store_instr();
+    checkregs(&ref_r, commit->pc, commit->next_pc);
+    checkcsrs(&ref_r, commit->pc, commit->next_pc);
+}
 
 #else
 void init_difftest(char *ref_so_file, long img_size, int port) { }

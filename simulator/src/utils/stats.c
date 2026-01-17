@@ -1,12 +1,13 @@
 #include <types.h>
+u64 sim_clk_count   = 0;
+u64 sim_instr_count = 0;
 
 
+u64  get_sim_clk_count()      {  return sim_clk_count;    }
+void update_sim_clk_count()   {         sim_clk_count++;  } 
+void update_instr_count()     {         sim_instr_count++;}
 
-u64 g_nr_guest_inst = 0;
-void update_instr_count(){
-    g_nr_guest_inst++;
-}
-bool inst_exec_one_million(){
-  return (g_nr_guest_inst % 1000000 == 0);
+bool instr_exec_one_million(){
+  return (sim_instr_count % 1000000 == 0);
 }  
 

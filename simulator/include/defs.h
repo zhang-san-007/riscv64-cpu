@@ -2,7 +2,6 @@
 #define  DEFS_H_
 #include <riscv/riscv.h>
 #include <common.h>
-#include <difftest.h>
 
 
 
@@ -44,7 +43,7 @@ void		init_rand();
 
 
 //disasm.cc
-void        difftest_step(const commit_t *commit);
+void        difftest_step(const commit_t*);
 bool        isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc);
 
 
@@ -82,16 +81,22 @@ void     sim_exit(const char *msg);
 bool take_arch_snapshot   (const CPU_state *, const uint8_t *);
 bool restore_arch_snapshot(CPU_state *, uint8_t *);
 
+//
+bool log_enable();
+void dump_pmem_4kb();
+void dump_pmem_to_log();
+
 
 //全局变量
-extern u64 g_nr_guest_inst;
+extern u64 sim_instr_count;
 extern CPU_state cpu;
 extern u64 *reg_ptr;
 extern u64 *csr_ptr;
 extern uint8_t pmem[CONFIG_MSIZE];
 extern SIMState   sim_state;
-static u64        g_timer = 0; // unit: us
-static bool       g_print_step = false;
 extern FILE *log_fp;
-bool log_enable();
+extern u64 sim_time;
+extern u64 clk_count;
+void update_sim_clk_count();
+
 #endif

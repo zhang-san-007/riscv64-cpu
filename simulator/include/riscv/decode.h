@@ -24,7 +24,7 @@
 #define op_store       0b0100011
 #define op_branch      0b1100011
 #define op_system      0b1110011
-#define op_csr         0b1110011
+#define op_system      0b1110011
 #define op_fence       0b0001111
 #define op_amo         0b0101111
 

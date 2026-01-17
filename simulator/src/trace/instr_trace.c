@@ -45,7 +45,7 @@ void instr_itrace(u64 pc, u32 instr) {
 void instr_itrace_display() {    
 
     int total = pool_full ? ITRACE_POOL_SIZE : itrace_ptr;
-    printf("\n%s ● " ANSI_BOLD "最近 %d 条指令 " ANSI_FG_RESET "(总计已执行: %" PRIu64 " 条, 不含 nop)\n",  ANSI_FG_CYAN, total, g_nr_guest_inst);    
+    printf("\n%s ● " ANSI_BOLD "最近 %d 条指令 " ANSI_FG_RESET "(总计已执行: %" PRIu64 " 条, 不含 nop)\n",  ANSI_FG_CYAN, total, sim_instr_count);    
     int i = pool_full ? itrace_ptr : 0;
     //执行count循环
     for (int count = 0; count < total; count++) {

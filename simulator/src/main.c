@@ -75,8 +75,6 @@ static const uint32_t img [] = {
 void load_builded_img(){
   memcpy(guest_to_host(RESET_VECTOR), img, sizeof(img));
 }
-void dump_pmem_4kb();
-void dump_pmem_to_log();
 
 void init_simulator(int argc, char **argv){
   parse_args(argc, argv);
@@ -85,7 +83,6 @@ void init_simulator(int argc, char **argv){
   init_mem();
   load_builded_img();
   long img_size = load_img();
-//  restore_arch_snapshot(&cpu, pmem);
   npc_init();
 
   init_difftest(diff_so_file,img_size, difftest_port);

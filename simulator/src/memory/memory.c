@@ -4,6 +4,7 @@
 #include <defs.h>
 
 
+
 uint8_t pmem[CONFIG_MSIZE] PG_ALIGN = {}; 
 
 void init_mem() {
@@ -42,7 +43,6 @@ static inline bool in_pmem(paddr_t addr) {
   return addr >= CONFIG_MBASE && addr <= CONFIG_MBASE + CONFIG_MSIZE;
 }
 
-extern CPU_state cpu;
 
 word_t pmem_read(paddr_t addr, int len){
   return host_read(guest_to_host(addr), len);
@@ -51,12 +51,11 @@ void pmem_write(paddr_t addr, int len, word_t data) {
   host_write(guest_to_host(addr), len, data);
 }
 static void out_of_bound(paddr_t addr) {
-  panic("in[npc] address = " FMT_PADDR " is out of bound of pmem [" FMT_PADDR ", " FMT_PADDR "] at pc = " FMT_WORD, addr, PMEM_LEFT, PMEM_RIGHT, cpu.pc);
+
+//  panic("in[npc] address = " FMT_PADDR " is out of bound of pmem [" FMT_PADDR ", " FMT_PADDR "] at pc = " FMT_WORD, addr, PMEM_LEFT, PMEM_RIGHT, cpu.pc);
 }
 
 word_t paddr_read(paddr_t addr, int len){
-  IFDEF(CONFIG_INS_TRACE,Log("[read]addr = 0x%lx, len = %x",addr,len));
-
   if(likely(in_pmem(addr))) return pmem_read(addr, len);
   IFDEF(CONFIG_DEVICE, return mmio_read(addr, len));
   out_of_bound(addr);
@@ -64,8 +63,6 @@ word_t paddr_read(paddr_t addr, int len){
 }
 
 void paddr_write(paddr_t addr, int len, word_t data) {
-  IFDEF(CONFIG_INS_TRACE,Log("[write]addr = 0x%lx, len = %x",addr,len));
-
   if (likely(in_pmem(addr))) { pmem_write(addr, len, data); return; }
   IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); return);
   out_of_bound(addr);
@@ -77,9 +74,7 @@ void dump_pmem_4kb() {
   paddr_t start_addr = CONFIG_MBASE;
   int total_size = 4096; // 4KB
   int step = 4;          // 4字节
-
   printf("--- Memory Dump: Start at " FMT_PADDR " (Total 4KB) ---\n", start_addr);
-
   for (int i = 0; i < total_size; i += step) {
     paddr_t curr_addr = start_addr + i;
     
@@ -87,35 +82,22 @@ void dump_pmem_4kb() {
     if (i % 16 == 0) {
       printf("\n" FMT_PADDR ": ", curr_addr);
     }
-
-    // 调用你现有的 pmem_read 或 host_read
-    // 注意：如果是 64 位系统，paddr_read 可能返回 64 位，这里强制转为 uint32_t 打印
     uint32_t data = (uint32_t)pmem_read(curr_addr, step);
     printf("0x%08x  ", data);
   }
   printf("\n--- End of Dump ---\n");
 }
-extern FILE *log_fp;
-bool log_enable();
 
 void dump_pmem_to_log() {
   if (!log_enable()) return;
-
-  // 定义绿色线条的宏或字符串
-  // \033[1;32m 开启绿色高亮, \033[0m 关闭颜色恢复默认
-  const char *green_line = "\033[1;32m============================================================\033[0m\n";
-  
+  const char *green_line = "===========================================================\n";  
   paddr_t start_addr = CONFIG_MBASE;
   int total_size = 4096; // 4KB
   int step = 4;
-
-  // 1. 开始处打印绿色线到文件
   fprintf(log_fp, "%s", green_line);
   fprintf(log_fp, "--- [Memory Dump Start] Base: " FMT_PADDR ", Size: 4KB ---\n", start_addr);
-
   for (int i = 0; i < total_size; i += step) {
     paddr_t curr_addr = start_addr + i;
-
     if (!in_pmem(curr_addr)) {
         fprintf(log_fp, "\n[Dump Error]: Address " FMT_PADDR " out of pmem bound.\n", curr_addr);
         break;
@@ -133,7 +115,6 @@ void dump_pmem_to_log() {
     }
   }
 
-  // 2. 结束处打印绿色线到文件
   fprintf(log_fp, "\n--- [Memory Dump End] ---\n");
   fprintf(log_fp, "%s", green_line);
   fflush(log_fp);

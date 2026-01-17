@@ -9,7 +9,6 @@ typedef struct {
   u64 gpr[GPR_NUM];
   u64 pc;
   u64 csr[CSR_NUM];
-  
 } CPU_state;
 
 

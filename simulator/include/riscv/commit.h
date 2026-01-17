@@ -6,7 +6,7 @@
 typedef struct commit_t{
   u64 pc;
   u64 next_pc;
-  u64 instr;
+  u32 instr;
 
   u64 mem_addr;
   u64 mem_rdata;
