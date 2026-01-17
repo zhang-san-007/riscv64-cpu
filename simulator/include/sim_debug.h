@@ -1,26 +1,51 @@
-// --- 功能开关配置 ---
+// =============================================================================
+// --- 功能开关配置 (Feature Configuration) ---
+// =============================================================================
+
 /**
  * [功能] Difftest 对比机制
  * [操作] 开启：取消注释； 关闭：注释掉本项目
- * [注意] 请勿通过修改数值 (0/1) 来关闭，必须通过注释掉 #define 来禁用
+ * [注意] 开启后将与 Golden Model (如 NEMU) 进行逐条指令同步对比。
+ * [影响] 会显著降低仿真速度。请确保已正确处理特殊指令 (is_special_instr)。
  */
 #define CONFIG_DIFFTEST 1
 
 /**
- * [功能] NPC 波形追踪 (Simulation Trace)
- * [操作] 开启：取消注释；关闭：注释掉本项目
- * [注意] 请勿通过修改数值 (0/1) 来关闭，必须通过注释掉 #define 来禁用
+ * [功能] NPC 波形追踪 (Simulation Waveform Trace)
+ * [操作] 开启：取消注释； 关闭：注释掉本项目
+ * [注意] 生成 .vcd 或 .fst 格式的波形文件，供 GTKWave 观察信号。
+ * [影响] 会产生海量的磁盘 IO，并可能填满硬盘。建议仅在短距离调试时开启。
  */
 //#define CONFIG_NPC_OPEN_SIM 1
 
+/**
+ * [功能] 指令执行日志 (Trace Log)
+ * [操作] 开启：取消注释； 关闭：注释掉本项目
+ * [注意] 在日志文件中记录每一条提交指令的 PC 与指令字。
+ * [影响] 适用于分析长距离运行后的系统崩坏轨迹。
+ */
+//#define CONFIG_TRACE_LOG 1
 
-//trace
-#define CONFIG_TRACE_LOG 1
+/**
+ * [功能] 指令反汇编追踪 (Instruction Disassembly / Itrace)
+ * [操作] 开启：取消注释； 关闭：注释掉本项目
+ * [注意] 将二进制机器码实时翻译为汇编指令显示在终端或日志。
+ * [影响] 便于直观观察程序逻辑流，依赖特定的反汇编库（如 LLVM）。
+ */
 #define CONFIG_ITRACE 1
 
-//DPI-MMIO-DEBUG
-//#define CONFIG_DPI_MMIO_DEGBUG  1
+/**
+ * [功能] DPI 级 MMIO 访问记录
+ * [操作] 开启：取消注释； 关闭：注释掉本项目
+ * [注意] 记录硬件电路直接通过 DPI-C 接口触发的总线读写。
+ * [影响] 属于底层物理级调试，用于排查 AXI/Wishbone 等总线协议错误。
+ */
+//#define CONFIG_DPI_MMIO_DEBUG 1
 
-//difftest-MMIO-debug
+/**
+ * [功能] Difftest 级 MMIO 判定记录
+ * [操作] 开启：取消注释； 关闭：注释掉本项目
+ * [注意] 记录被 is_special_instr 识别并由于副作用而被跳过的访存操作。
+ * [影响] 属于软件逻辑级调试，用于确认哪些指令未参与对比。
+ */
 //#define CONFIG_DIFFTEST_MMIO_DEBUG 1
-

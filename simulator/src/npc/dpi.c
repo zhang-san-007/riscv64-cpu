@@ -2,6 +2,14 @@
 #include <defs.h>
 #include "verilated_dpi.h" 
 
+// --- 定义 xv6/QEMU 物理内存布局 ---
+#define UART_BASE      0x10000000
+#define UART_SIZE      0x100
+#define VIRTIO0_BASE   0x10001000  // xv6 磁盘驱动
+#define PLIC_BASE      0x0c000000  // 中断控制器
+#define DRAM_BASE      0x80000000  // 物理内存起始地址 (CONFIG_MBASE)
+
+
 extern "C" void dpi_ebreak(){
 	printf("下一个要执行的指令是ebreak\n");
 	SIMTRAP(0x80000000, 0);

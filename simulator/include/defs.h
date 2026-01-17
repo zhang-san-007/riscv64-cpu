@@ -99,4 +99,7 @@ extern u64 sim_time;
 extern u64 clk_count;
 void update_sim_clk_count();
 
+void update_instr_count();
+bool instr_exec_one_million();
+
 #endif

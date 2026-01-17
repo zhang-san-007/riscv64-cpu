@@ -119,21 +119,17 @@ bool is_special_instr(const commit_t *commit) {
     const u32 opcode = GET_OPCODE(commit->instr);    
     const u32 func3 = GET_FUNC3(commit->instr);            
     const u32 csr_id = GET_CSR_ID(commit->instr);
-
     if (opcode == op_system && func3 != 0) { 
         return csr_id == timer;
     }
-
     bool is_load  = (opcode == op_load);
     bool is_store = (opcode == op_store);
-
     if (is_load || is_store) {
         if (is_mmio_address(commit->mem_addr)) {
             log_mmio(commit, is_load);
             return true;
         }
     }
-
     return false;
 }
 
@@ -143,7 +139,6 @@ void check_load_store_instr(){
 
 
 
-decode_t decode;
 void difftest_step(const commit_t * commit) {
     CPU_state ref_r;
     ref_difftest_exec(1);    

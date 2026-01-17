@@ -5,6 +5,18 @@
 
 extern TOP_NAME dut;  		
 
+#include <types.h>
+u64 sim_clk_count   = 0;
+u64 sim_instr_count = 0;
+
+
+u64  get_sim_clk_count()      {  return sim_clk_count;    }
+void update_sim_clk_count()   {         sim_clk_count++;  } 
+void update_instr_count()     {         sim_instr_count++;}
+
+
+
+
 void check_ebreak(const commit_t *commit){
   if(commit->instr == inst_ebreak){
     instr_trace(    commit->pc , commit->instr);
@@ -22,13 +34,7 @@ void get_commit_info(commit_t * commit){
     commit->mem_rdata  = dut.commit_mem_rdata;
     commit->mem_wdata  = dut.commit_mem_wdata;
 }
-void get_decode_info(decode_t * decode, u32 instr){
-    decode->opcode  = GET_OPCODE(instr);
-    decode->csr_id  = GET_CSR_ID(instr);
-    decode->func3   = GET_FUNC3(instr);
-    decode->func7   = GET_FUNC7(instr);
-    decode->rd      = GET_RD(instr);
-}
+
 void get_cpu_info(CPU_state * diff_cpu){
   diff_cpu->pc= cpu.pc;
   memcpy(diff_cpu->gpr, cpu.gpr, sizeof(diff_cpu->gpr));
@@ -50,6 +56,13 @@ void execute(uint64_t n){
 
     npc_single_cycle();                  
     update_cpu_state();    
+
+    sim_instr_count++;
+    if(sim_instr_count % 1000000 == 0){
+      printf("处理器已经执行了%ld条指令\n", sim_instr_count);
+    }
+
+
     IFDEF(CONFIG_TRACE_LOG, instr_trace_log(commit.pc, commit.instr));
     IFDEF(CONFIG_ITRACE,    instr_itrace(   commit.pc , commit.instr));
     IFDEF(CONFIG_DIFFTEST,  difftest_step(&commit));  
@@ -62,7 +75,6 @@ void cpu_exec(uint64_t n) {
   execute(n); 
   uint64_t timer_end = get_time();
   u64 sim_time = timer_end - timer_start;
-
   printf("模拟器执行阶数，模拟器执行的时间为%ld", sim_time);
 }
 

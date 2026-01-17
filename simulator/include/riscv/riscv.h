@@ -3,8 +3,8 @@
 
 #include <cpu.h>
 #include <csr.h>
-#include <decode.h>
 #include <commit.h>
+#include <decode.h>
 #endif
 
 
