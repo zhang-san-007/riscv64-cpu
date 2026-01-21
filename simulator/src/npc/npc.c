@@ -10,8 +10,6 @@
 #define STR(x) STR_HELPER(x)
 #define MAX_GUEST_INST 30000
 
-
-
 TOP_NAME dut;  			    //CPU
 static VerilatedFstC *m_trace = NULL;  //仿真波形
 
@@ -41,7 +39,6 @@ void npc_reset(int n) {
   while (n -- > 0) npc_single_cycle();
   dut.rst = 0;
 }
-
 void npc_init() {
   IFDEF(CONFIG_NPC_OPEN_SIM, npc_open_simulation());  
   npc_reset(1);  

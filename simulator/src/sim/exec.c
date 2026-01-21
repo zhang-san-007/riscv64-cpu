@@ -17,13 +17,12 @@ void update_instr_count()     {         sim_instr_count++;}
 
 
 
-void check_ebreak(const commit_t *commit){
-  if(commit->instr == inst_ebreak){
-    instr_trace(    commit->pc , commit->instr);
-    printf("由于仿真框架将[ebreak]指令看作是程序结束的指令，执行[ebreak]指令之后，我们退出程序\n");
-    sim_state.state = SIM_END;
-  }
-
+void check_ebreak(const commit_t *commit) {
+    if (commit->instr == inst_ebreak) { 
+        printf("\n\033[1;33m[NEMU Trap]\033[0m HIT ebreak at pc = 0x%016lx\n", commit->pc);
+        printf("Termination: ebreak encountered. Simulation stops as per protocol.\n");
+        sim_exit("hit ebreak");
+    }
 }
 
 void get_commit_info(commit_t * commit){
@@ -40,6 +39,7 @@ void get_cpu_info(CPU_state * diff_cpu){
   memcpy(diff_cpu->gpr, cpu.gpr, sizeof(diff_cpu->gpr));
   memcpy(diff_cpu->csr, cpu.csr, sizeof(diff_cpu->csr));
 }
+
 
 //si 1执行一条指令就确定是一次commit, 而不是多次clk
 void execute(uint64_t n){
@@ -62,9 +62,7 @@ void execute(uint64_t n){
       printf("处理器已经执行了%ld条指令\n", sim_instr_count);
     }
 
-
-    IFDEF(CONFIG_TRACE_LOG, instr_trace_log(commit.pc, commit.instr));
-    IFDEF(CONFIG_ITRACE,    instr_itrace(   commit.pc , commit.instr));
+    instr_trace_dispatch(commit.pc, commit.instr, sim_instr_count);
     IFDEF(CONFIG_DIFFTEST,  difftest_step(&commit));  
     
   }

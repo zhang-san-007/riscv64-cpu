@@ -294,6 +294,7 @@
 // }
 
 
+
 // //下面的信息都还没有搞懂
 // wire inst_need_rs1 = (~inst_lui)    	& (~inst_auipc)  & (~inst_jal)    &
 //   					 (~inst_csrrwi) 	& (~inst_csrrsi) & (~inst_csrrci) &
@@ -322,10 +323,10 @@
 // wire inst_imm_sel_u = inst_lui | inst_auipc;
 
 // wire [31:0] inst_imm = ({32{inst_imm_sel_i}} & inst_i_imm) |
-// 				       ({32{inst_imm_sel_s}} & inst_s_imm) |
-// 				       ({32{inst_imm_sel_b}} & inst_b_imm) |
-// 		   		       ({32{inst_imm_sel_j}} & inst_j_imm) |
-// 		               ({32{inst_imm_sel_u}} & inst_u_imm);
+    // 				       ({32{inst_imm_sel_s}} & inst_s_imm) |
+    // 				       ({32{inst_imm_sel_b}} & inst_b_imm) |
+    // 		   		       ({32{inst_imm_sel_j}} & inst_j_imm) |
+    // 		               ({32{inst_imm_sel_u}} & inst_u_imm);
 						 
 // assign decode_imm_o = inst_imm;
 

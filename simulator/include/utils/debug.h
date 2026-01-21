@@ -6,8 +6,8 @@
 #include <utils.h>
 #include <assert.h>
 
-#define Log(format, ...) \
-    _Log(ANSI_FMT("[%s:%d %s] " format, ANSI_FG_BLUE) "\n", __FILE__, __LINE__, __func__, ## __VA_ARGS__)
+// #define Log(format, ...) \
+//     _Log(ANSI_FMT("[%s:%d %s] " format, ANSI_FG_BLUE) "\n", __FILE__, __LINE__, __func__, ## __VA_ARGS__)
 
 #define Assert(cond, format, ...) \
   do { \
@@ -22,6 +22,4 @@
 #define panic(format, ...) Assert(0, format, ## __VA_ARGS__)
 #define TODO() panic("please implement me")
 
-//      extern void assert_fail_msg(); 
-//      assert_fail_msg(); 
 #endif

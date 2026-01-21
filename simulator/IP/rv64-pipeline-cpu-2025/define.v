@@ -29,31 +29,31 @@
 
 
 // User Level CSRs
-`define cycle          12'hC00
-`define timer          12'hC01
-`define instret        12'hC02
+`define cycle               12'hC00
+`define timer               12'hC01
+`define instret             12'hC02
 
 // Machine Level CSRs
-`define mvendorid    12'hF11
-`define marchid      12'hF12
-`define mimpid       12'hF13
-`define mhartid      12'hF14
-`define mconfigptr   12'hF15
-`define misa        12'h301
-`define mstatus     12'h300
-`define medeleg     12'h302
-`define mideleg     12'h303
-`define mie         12'h304
-`define mtvec       12'h305
-`define mcounteren  12'h306
-`define mscratch    12'h340
-`define mepc        12'h341
-`define mcause      12'h342
-`define mtval       12'h343
-`define mip         12'h344
-`define mcycle      12'hB00
-`define minstret    12'hB02
-`define menvcfg     12'h30A
+`define mvendorid           12'hF11
+`define marchid             12'hF12
+`define mimpid              12'hF13
+`define mhartid             12'hF14
+`define mconfigptr          12'hF15
+`define misa                12'h301
+`define mstatus             12'h300
+`define medeleg             12'h302
+`define mideleg             12'h303
+`define mie                 12'h304
+`define mtvec               12'h305
+`define mcounteren          12'h306
+`define mscratch            12'h340
+`define mepc                12'h341
+`define mcause              12'h342
+`define mtval               12'h343
+`define mip                 12'h344
+`define mcycle              12'hB00
+`define minstret            12'hB02
+`define menvcfg             12'h30A
 
 
 // Supervisor Level CSRs
