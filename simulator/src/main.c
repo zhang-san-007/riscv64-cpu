@@ -84,7 +84,6 @@ void init_simulator(int argc, char **argv){
   load_builded_img();
   long img_size = load_img();
   npc_init();
-
   init_difftest(diff_so_file,img_size, difftest_port);
   init_disasm("riscv64-pc-linux-gnu");
   welcome();

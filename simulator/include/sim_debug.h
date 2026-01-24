@@ -16,7 +16,7 @@
  * [注意] 生成 .vcd 或 .fst 格式的波形文件，供 GTKWave 观察信号。
  * [影响] 会产生海量的磁盘 IO，并可能填满硬盘。建议仅在短距离调试时开启。
  */
-//#define CONFIG_NPC_OPEN_SIM 1
+#define CONFIG_NPC_OPEN_SIM 1
 
 
 /**

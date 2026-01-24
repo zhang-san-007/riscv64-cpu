@@ -69,11 +69,8 @@ void	 pmem_write(paddr_t addr, int len, word_t data);
 //trace----->instr_trace
 void     instr_trace_dispatch(u64 pc, u32 instr, u64 instr_count);
 void     instr_itrace_display();
-
-
 //sim
 void     sim_exit(const char *msg);
-
 //snapshot
 bool take_arch_snapshot   (const CPU_state *, const uint8_t *);
 bool restore_arch_snapshot(CPU_state *, uint8_t *);

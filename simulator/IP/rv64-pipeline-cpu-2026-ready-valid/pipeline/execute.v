@@ -229,7 +229,18 @@ assign execute_o_commit_info = execute_o_branch_need_jump ?  {regE_i_commit_info
                                execute_o_mret_need_jump   ?  {regE_i_commit_info[160], regE_i_commit_info[159:128], execute_o_mret_next_pc,   regE_i_commit_info[63:0]} : regE_i_commit_info;
 
 
-//commite_info
+//对于跳转指令来说
+
+//  IF->fetch        ID->decode      IE->execute   IM->memory      IW->wb
+//  A                B               C              D               E
+
+
+//我们执行到C的时候发现出错，这个时候应该让 A 和 B和C都冲刷掉。
+//IF的A应该换成branch_next_pc, ID应该冲刷掉，IE应该冲刷掉，然后exe
+//如果我们给IF一共new_pc, 给ID和IE一个bubble信号，那么它还是全局式子的
+//我想的是如何通过反馈调节实现这个效果呢？
+
+
 endmodule
 //branch
 

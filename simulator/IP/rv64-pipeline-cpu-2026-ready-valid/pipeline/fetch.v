@@ -16,9 +16,9 @@ assign fetch_o_instr            =  dpi_instr_mem_read(pc);
 //assign excption_illegal_instr   =  
 
 assign fetch_o_next_pc       =  fetch_o_pc + 64'd4; //这个是预测的下一条PC
-assign fetch_o_commit_info  = {1'b1, fetch_o_instr, fetch_o_next_pc, fetch_o_pc};
+assign fetch_o_commit_info   = {1'b1, fetch_o_instr, fetch_o_next_pc, fetch_o_pc};
 
 
-// wire excption_instruction_address_misaligned = pc[1:0] != 2'b00;
-// wire excption_instruction_access_fault
+
+    
 endmodule
