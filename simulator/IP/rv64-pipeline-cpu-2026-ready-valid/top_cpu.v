@@ -15,6 +15,12 @@ module top_cpu(
 );
 
 // ---------------------------------------------------------
+// 0. 全局控制信号 (Flush)
+// ---------------------------------------------------------
+// 当执行级判定需要跳转（分支成功或mret）时，冲刷前端流水线
+wire pipeline_flush = execute_o_branch_need_jump || execute_o_mret_need_jump;
+
+// ---------------------------------------------------------
 // 1. PC 级
 // ---------------------------------------------------------
 wire        pc_o_allowin;
@@ -32,10 +38,8 @@ pc u_pc(
     .regD_i_allowin              ( regD_o_allowin              ),
     .pc_o_allowin                ( pc_o_allowin                ),
     .pc_o_valid                  ( pc_o_valid                  ),
-    .pc                          ( pc                          )
+    .pc                          ( pc                          ) 
 );
-
-
 
 // ---------------------------------------------------------
 // 2. Fetch 级
@@ -52,7 +56,7 @@ fetch u_fetch(
     .fetch_o_pc                  ( fetch_o_pc                  ),
     .fetch_o_instr               ( fetch_o_instr               ),
     .fetch_o_next_pc             ( fetch_o_next_pc             ),
-    .fetch_o_commit_info         ( fetch_o_commit_info         )
+    .fetch_o_commit_info         ( fetch_o_commit_info         ) 
 );
 
 // ---------------------------------------------------------
@@ -67,16 +71,17 @@ wire [160:0] regD_o_commit_info;
 regD u_regD(
     .clk                         ( clk                         ),
     .rst                         ( rst                         ),
+    .pipeline_flush              ( pipeline_flush              ), // 新增：跳转冲刷信号
     .pc_o_valid                  ( pc_o_valid                  ),
     .regD_o_allowin              ( regD_o_allowin              ),
     .regD_o_valid                ( regD_o_valid                ),
-    .regE_allowin                ( regE_o_allowin              ), 
+    .regE_allowin                ( regE_o_allowin              ),
     .fetch_i_pc                  ( fetch_o_pc                  ),
     .fetch_i_instr               ( fetch_o_instr               ),
     .fetch_i_commit_info         ( fetch_o_commit_info         ),
     .regD_o_pc                   ( regD_o_pc                   ),
     .regD_o_instr                ( regD_o_instr                ),
-    .regD_o_commit_info          ( regD_o_commit_info          )
+    .regD_o_commit_info          ( regD_o_commit_info          ) 
 );
 
 // ---------------------------------------------------------
@@ -145,7 +150,7 @@ decode u_decode(
     .decode_o_reg_rd             ( decode_o_reg_rd             ),
     .decode_o_reg_wen            ( decode_o_reg_wen            ),
     .decode_o_reg_rs1            ( decode_o_reg_rs1            ),
-    .decode_o_reg_rs2            ( decode_o_reg_rs2            )
+    .decode_o_reg_rs2            ( decode_o_reg_rs2            ) 
 );
 
 // ---------------------------------------------------------
@@ -175,6 +180,7 @@ wire [160:0] regE_o_commit_info;
 regE u_regE(
     .clk                         ( clk                         ),
     .rst                         ( rst                         ),
+    .pipeline_flush              ( pipeline_flush              ), // 新增：跳转冲刷信号
     .decode_i_opcode_info        ( decode_o_opcode_info        ),
     .decode_i_branch_info        ( decode_o_branch_info        ),
     .decode_i_load_store_info    ( decode_o_load_store_info    ),
@@ -196,7 +202,7 @@ regE u_regE(
     .regD_o_valid                ( regD_o_valid                ),
     .regE_o_allowin              ( regE_o_allowin              ),
     .regE_o_valid                ( regE_o_valid                ),
-    .regM_allowin                ( regM_o_allowin              ), 
+    .regM_allowin                ( regM_o_allowin              ),
     .regE_o_opcode_info          ( regE_o_opcode_info          ),
     .regE_o_branch_info          ( regE_o_branch_info          ),
     .regE_o_load_store_info      ( regE_o_load_store_info      ),
@@ -214,7 +220,7 @@ regE u_regE(
     .regE_o_csr_wen              ( regE_o_csr_wen              ),
     .regE_o_reg_rd               ( regE_o_reg_rd               ),
     .regE_o_reg_wen              ( regE_o_reg_wen              ),
-    .regE_o_commit_info          ( regE_o_commit_info          )
+    .regE_o_commit_info          ( regE_o_commit_info          ) 
 );
 
 // ---------------------------------------------------------
@@ -247,7 +253,7 @@ execute u_execute(
     .execute_o_mret_next_pc      ( execute_o_mret_next_pc      ),
     .execute_o_branch_next_pc    ( execute_o_branch_next_pc    ),
     .execute_o_branch_need_jump  ( execute_o_branch_need_jump  ),
-    .execute_o_commit_info       ( execute_o_commit_info       )
+    .execute_o_commit_info       ( execute_o_commit_info       ) 
 );
 
 // ---------------------------------------------------------
@@ -292,7 +298,7 @@ regM u_regM(
     .regE_o_valid                ( regE_o_valid                ),
     .regM_o_allowin              ( regM_o_allowin              ),
     .regM_o_valid                ( regM_o_valid                ),
-    .regW_allowin                ( regW_o_allowin              ), 
+    .regW_allowin                ( regW_o_allowin              ),
     .regM_o_load_store_info      ( regM_o_load_store_info      ),
     .regM_o_opcode_info          ( regM_o_opcode_info          ),
     .regM_o_csrrw_info           ( regM_o_csrrw_info           ),
@@ -307,7 +313,7 @@ regM u_regM(
     .regM_o_csr_wen              ( regM_o_csr_wen              ),
     .regM_o_reg_rd               ( regM_o_reg_rd               ),
     .regM_o_reg_wen              ( regM_o_reg_wen              ),
-    .regM_o_commit_info          ( regM_o_commit_info          )
+    .regM_o_commit_info          ( regM_o_commit_info          ) 
 );
 
 // ---------------------------------------------------------
@@ -324,7 +330,7 @@ memory u_memory(
     .regM_i_alu_result           ( regM_o_alu_result           ),
     .regM_i_regdata2             ( regM_o_regdata2             ),
     .regM_i_regdata1             ( regM_o_regdata1             ),
-    .memory_o_mem_rdata          ( memory_o_mem_rdata          )
+    .memory_o_mem_rdata          ( memory_o_mem_rdata          ) 
 );
 
 // ---------------------------------------------------------
@@ -367,7 +373,6 @@ regW u_regW(
     .regM_o_valid                ( regM_o_valid                ),
     .regW_o_allowin              ( regW_o_allowin              ),
     .regW_o_valid                ( regW_o_valid                ),
-    // 移除了 .wb_ready(1'b1)
     .regW_o_opcode_info          ( regW_o_opcode_info          ),
     .regW_o_csrrw_info           ( regW_o_csrrw_info           ),
     .regW_o_system_info          ( regW_o_system_info          ),
@@ -381,7 +386,7 @@ regW u_regW(
     .regW_o_reg_wen              ( regW_o_reg_wen              ),
     .regW_o_csr_wid              ( regW_o_csr_wid              ),
     .regW_o_csr_wen              ( regW_o_csr_wen              ),
-    .regW_o_commit_info          ( regW_o_commit_info          )
+    .regW_o_commit_info          ( regW_o_commit_info          ) 
 );
 
 // ---------------------------------------------------------
@@ -414,9 +419,12 @@ write_back u_write_back(
     .wb_o_system_info            ( wb_o_system_info            ),
     .wb_o_reg_rd                 ( wb_o_reg_rd                 ),
     .wb_o_reg_wdata              ( wb_o_reg_wdata              ),
-    .wb_o_reg_wen                ( wb_o_reg_wen                )
+    .wb_o_reg_wen                ( wb_o_reg_wen                ) 
 );
 
+// ---------------------------------------------------------
+// 11. Commit 级
+// ---------------------------------------------------------
 // ---------------------------------------------------------
 // 11. Commit 级
 // ---------------------------------------------------------
@@ -425,6 +433,7 @@ commit u_commit(
     .regW_i_regdata2             ( regW_o_regdata2             ),
     .regW_i_mem_rdata            ( regW_o_mem_rdata            ),
     .regW_i_alu_result           ( regW_o_alu_result           ),
+    .regW_i_valid                ( regW_o_valid                ), // 记得连接这个信号
     .commit_o_mem_rdata          ( commit_mem_rdata            ),
     .commit_o_mem_wdata          ( commit_mem_wdata            ),
     .commit_o_mem_addr           ( commit_mem_addr             ),
@@ -433,5 +442,7 @@ commit u_commit(
     .commit_o_pc                 ( commit_pc                   ),
     .commit_o_next_pc            ( commit_next_pc              )
 );
+
 assign cur_pc = pc;
+
 endmodule

@@ -41,9 +41,15 @@ module regM(
     reg         regM_valid;
     wire        regM_ready_go;
 
+//让别人进只有两种情况
+//  第一种是我自身无效
+//  第二种是我准备好了，然后后一级别和我说你来吧。
+
+
     assign regM_ready_go  = 1'b1;
     assign regM_o_allowin = !regM_valid || (regM_ready_go && regW_allowin);
-    assign regM_o_valid   = regM_valid && regM_ready_go;
+    assign regM_o_valid   =  regM_valid && regM_ready_go;
+
 
     always @(posedge clk) begin
         if (rst) begin
@@ -51,7 +57,7 @@ module regM(
         end else if (regM_o_allowin) begin
             regM_valid <= regE_o_valid;
         end
-
+        //只要上级
         if (regE_o_valid && regM_o_allowin) begin
             regM_o_load_store_info  <= regE_i_load_store_info;
             regM_o_opcode_info      <= regE_i_opcode_info;
@@ -72,3 +78,26 @@ module regM(
     end
 
 endmodule
+
+
+
+
+// 阶段:          [ IF ]               [ ID ]               [ EXE ]              [ MEM ]
+// 寄存器:         regF                 regD                 regE                 regM
+//              +---------+          +---------+          +---------+          +---------+
+// 指令内容:     |    A    |          |    B    |          |   JAL   |          |    D    |
+//              +---------+          +---------+          +---------+          +---------+
+// 内部Valid位:  |    1    |          |    1    |          |    1    |          |    1    |
+//              +---------+          +---------+          +---------+          +---------+
+//                   |                    |                    |                    |
+// [发出的Valid]  o_valid=1 ----------> i_valid=1 ----------> i_valid=1 ----------> o_valid=1
+//                   |                    |                    |                    |
+// [接收的Allow]  i_allow=1 <---------  o_allow=1 <---------  o_allow=1 <--------- i_allow=1
+//                   ^                    ^                    ^                    |
+//                   |                    |                    |                    |
+//                   |             [ 握手控制中心 ]         [ 跳转发生 ]              |
+//                   |                    |                    |                    |
+//                   |                    | <---jump_taken=1---|                    |
+//                   |                    |                    |                    |
+//                   V                    V                    V                    V
+// [下一拍动作]   更新PC为             写入valid=0           JAL进入regM          正常流动

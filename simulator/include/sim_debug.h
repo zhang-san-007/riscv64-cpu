@@ -47,7 +47,7 @@
  * [描述] 记录每一条提交指令的 PC 与原始指令字。
  * [场景] 适用于长距离运行后的系统崩坏轨迹分析，用于二进制级别的行为比对。
  */
-//#define CONFIG_TRACE_LOG
+#define CONFIG_TRACE_LOG
 
 /**
  * @brief [关键指令捕捉] CONFIG_TRACE_SPECIAL

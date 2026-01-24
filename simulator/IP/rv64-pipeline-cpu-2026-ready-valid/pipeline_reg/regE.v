@@ -2,6 +2,7 @@
 module regE(
     input  wire         clk,
     input  wire         rst,
+    input  wire         pipeline_flush,    // 新增：流水线冲刷信号
     input  wire [13:0]  decode_i_opcode_info,
     input  wire [5:0]   decode_i_branch_info,
     input  wire [10:0]  decode_i_load_store_info,
@@ -21,7 +22,7 @@ module regE(
     input  wire         decode_i_reg_wen,
     input  wire [160:0] regD_i_commit_info,
     input  wire         regD_o_valid,
-    output wire         regE_o_allowin,    // 已修改为输出信号
+    output wire         regE_o_allowin,
     output wire         regE_o_valid,
     input  wire         regM_allowin,
     output reg  [13:0]  regE_o_opcode_info,
@@ -43,21 +44,21 @@ module regE(
     output reg          regE_o_reg_wen,
     output reg  [160:0] regE_o_commit_info
 );
-
     reg         regE_valid;
     wire        regE_ready_go;
 
     assign regE_ready_go  = 1'b1;
     assign regE_o_allowin = !regE_valid || (regE_ready_go && regM_allowin);
-    assign regE_o_valid   =  regE_valid && regE_ready_go;
+    assign regE_o_valid   = regE_valid && regE_ready_go;
 
     always @(posedge clk) begin
-        if (rst) begin
+        if (rst || pipeline_flush) begin    // 发生跳转时，将当前准备执行的指令置为无效
             regE_valid <= 1'b0;
         end else if (regE_o_allowin) begin
             regE_valid <= regD_o_valid;
         end
-        if (regD_o_valid && regE_o_allowin) begin
+
+        if (regD_o_valid && regE_o_allowin && !pipeline_flush) begin
             regE_o_opcode_info     <= decode_i_opcode_info;
             regE_o_branch_info     <= decode_i_branch_info;
             regE_o_load_store_info <= decode_i_load_store_info;

@@ -183,7 +183,6 @@ assign execute_o_alu_result = op_lui    ?   {alu_src1  +  alu_src2    }         
                               alu_divw  ?   ( alu_src2 == 64'd0 ? 64'hFFFFFFFFFFFFFFFF :
                                               alu_src1 == 64'hFFFFFFFF80000000 && alu_src2 == 64'hFFFFFFFFFFFFFFFF ? 64'hFFFFFFFF80000000   : {{32{div_result[31]}}, div_result} )    :
                               alu_divuw ?   ( alu_src2 == 64'd0 ? 64'hFFFFFFFFFFFFFFFF :     {{32{udiv_result[31]}}, udiv_result} )         : 
- 
                               alu_rem   ?   ( (alu_src2 == 64'd0) ? alu_src1 :                               
                                             (  alu_src1 == 64'h8000_0000_0000_0000 && alu_src2 == 64'hffff_ffff_ffff_ffff) ? 64'd0 : 
                                                {$signed(alu_src1) % $signed(alu_src2)}                                           ) : 
@@ -197,8 +196,6 @@ assign execute_o_alu_result = op_lui    ?   {alu_src1  +  alu_src2    }         
                               inst_csrrwi   ? (alu_src1              )  :
                               inst_csrrsi   ? (alu_src2 |   alu_src1 )  :
                               inst_csrrci   ? (alu_src2 & (~alu_src1))  : 64'd0;
-
-
 //-------------------------------------------branch------------------------------------------------------------
 wire inst_beq   = regE_i_branch_info[5];
 wire inst_bne   = regE_i_branch_info[4];
@@ -218,8 +215,6 @@ wire [63:0] tmp = op_jalr ?  (execute_o_alu_result & ~1) : 64'd0;
 assign  execute_o_branch_next_pc   = op_jalr                       ? (execute_o_alu_result & ~1)           : 
                                      op_jal                        ?  execute_o_alu_result                 : 
                                      execute_o_branch_need_jump    ?  execute_o_alu_result                 : 64'd0;
-
-
 //-------------------------------------------mret------------------------------------------------------------
 assign execute_o_mret_need_jump = inst_mret;
 assign execute_o_mret_next_pc   = regE_i_csr_rdata2;
@@ -229,20 +224,8 @@ assign execute_o_commit_info = execute_o_branch_need_jump ?  {regE_i_commit_info
                                execute_o_mret_need_jump   ?  {regE_i_commit_info[160], regE_i_commit_info[159:128], execute_o_mret_next_pc,   regE_i_commit_info[63:0]} : regE_i_commit_info;
 
 
-//对于跳转指令来说
-
-//  IF->fetch        ID->decode      IE->execute   IM->memory      IW->wb
-//  A                B               C              D               E
-
-
-//我们执行到C的时候发现出错，这个时候应该让 A 和 B和C都冲刷掉。
-//IF的A应该换成branch_next_pc, ID应该冲刷掉，IE应该冲刷掉，然后exe
-//如果我们给IF一共new_pc, 给ID和IE一个bubble信号，那么它还是全局式子的
-//我想的是如何通过反馈调节实现这个效果呢？
-
-
 endmodule
-//branch
+
 
 
 
