@@ -46,11 +46,48 @@ module regW(
 
     always @(posedge clk) begin
         if (rst) begin
-            regW_valid <= 1'b0;
-        end else if (regW_o_allowin) begin
-            regW_valid <= regM_o_valid;
+            regW_valid         <= 1'b0;
+
+            regW_o_opcode_info  <= `nop_opcode_info;
+            regW_o_csrrw_info   <=  `nop_csrrw_info;
+            regW_o_system_info  <=  `nop_system_info;
+            regW_o_amo_info     <=  `nop_amo_info;
+            //
+            regW_o_alu_result   <=  `nop_alu_result;
+            regW_o_mem_rdata    <=  `nop_mem_rdata;
+            regW_o_pc           <=  `nop_pc;
+            regW_o_csr_rdata1   <=  `nop_csr_rdata1;
+            regW_o_regdata2     <=  `nop_regdata2;
+            //reg
+            regW_o_reg_rd       <=  `nop_reg_rd;
+            regW_o_reg_wen      <=  `nop_reg_wen;
+            //csr
+            regW_o_csr_wid       <=  `nop_csr_wid;
+            regW_o_csr_wen      <=  `nop_csr_wen;
+            regW_o_commit_info  <=  `nop_commit_info;
+        end 
+        else if (regW_o_allowin) begin
+            if (regM_o_valid == 1'b0) begin
+                regW_valid <= regM_o_valid;
+                regW_o_opcode_info  <=  `nop_opcode_info;
+                regW_o_csrrw_info   <=  `nop_csrrw_info;
+                regW_o_system_info  <=  `nop_system_info;
+                regW_o_amo_info     <=  `nop_amo_info;
+                regW_o_alu_result   <=  `nop_alu_result;
+                regW_o_mem_rdata    <=  `nop_mem_rdata;
+                regW_o_pc           <=  `nop_pc;
+                regW_o_csr_rdata1   <=  `nop_csr_rdata1;
+                regW_o_regdata2    <=  `nop_regdata2;
+                regW_o_reg_rd       <=  `nop_reg_rd;
+                regW_o_reg_wen      <=  `nop_reg_wen;
+                regW_o_csr_wid      <=  `nop_csr_wid;
+                regW_o_csr_wen      <=  `nop_csr_wen;
+                regW_o_commit_info  <=  `nop_commit_info;
+            end else begin
+                regW_valid <= regM_o_valid;
+            end
         end
-        if (regM_o_valid && regW_o_allowin) begin
+        if (regM_o_valid &&regW_o_allowin) begin
             regW_o_opcode_info <= regM_i_opcode_info;
             regW_o_csrrw_info  <= regM_i_csrrw_info;
             regW_o_system_info <= regM_i_system_info;
@@ -67,5 +104,4 @@ module regW(
             regW_o_commit_info <= regM_i_commit_info;
         end
     end
-
 endmodule

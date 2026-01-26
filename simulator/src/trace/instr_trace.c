@@ -71,7 +71,8 @@ static inline void parse_pattern(const char *p, u32 *key, u32 *mask) {
 static inline void __do_execute_special_trace(u64 pc, u32 instr, u64 instr_count) {
     char inst_str[INST_STR_MAX];
     disassemble(inst_str, INST_STR_MAX, pc, (uint8_t *)&instr, 4);
-    log_write("[%ld] pc=[0x%016lx] instr=[0x%08x], disassemble=[%s]\n", instr_count, pc, instr, inst_str);
+    //log_write("[%ld] pc=[0x%016lx] instr=[0x%08x], disassemble=[%s]\n", instr_count, pc, instr, inst_str);
+    printf("[%ld] pc=[0x%016lx] instr=[0x%08x], disassemble=[%s]\n", instr_count, pc, instr, inst_str);
 }
 
 /**
@@ -135,10 +136,9 @@ void instr_special_trace(u64 pc, u32 instr, u64 instr_count) {
 }
 //----------------------------------------instr_special_trace---end--------------------------------------------------
 
-
 void instr_trace_dispatch(u64 pc, u32 instr, u64 instr_count){
-//    instr_trace(pc, instr, instr_count);
-    IFDEF(CONFIG_TRACE_LOG,         instr_trace(pc, instr, instr_count));
+    instr_trace(pc, instr, instr_count);
+//    IFDEF(CONFIG_TRACE_LOG,         instr_trace(pc, instr, instr_count));
+//    IFDEF(CONFIG_TRACE_SPECIAL,     instr_special_trace(pc, instr, instr_count));
     IFDEF(CONFIG_ITRACE,            instr_itrace(pc , instr));
-    IFDEF(CONFIG_TRACE_SPECIAL,     instr_special_trace(pc, instr, instr_count));
 }

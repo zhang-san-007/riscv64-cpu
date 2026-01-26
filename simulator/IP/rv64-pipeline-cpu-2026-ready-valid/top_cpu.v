@@ -14,15 +14,20 @@ module top_cpu(
     output wire [63:0]    cur_pc
 );
 
-// ---------------------------------------------------------
-// 0. 全局控制信号 (Flush)
-// ---------------------------------------------------------
-// 当执行级判定需要跳转（分支成功或mret）时，冲刷前端流水线
-wire pipeline_flush = execute_o_branch_need_jump || execute_o_mret_need_jump;
+wire branch_bubble      =         execute_o_branch_need_jump || execute_o_mret_need_jump;
+wire load_use           = (regE_o_reg_rd == decode_o_reg_rs1 || regE_o_reg_rd == decode_o_reg_rs2) && regE_o_opcode_info[3];
 
-// ---------------------------------------------------------
-// 1. PC 级
-// ---------------------------------------------------------
+
+wire regF_stall     = load_use;
+wire regD_stall     = load_use;
+wire regE_stall     = 1'b0;
+
+wire regF_bubble    = 1'b0;
+wire regD_bubble    = branch_bubble;
+wire regE_bubble    = branch_bubble | load_use;
+
+
+
 wire        pc_o_allowin;
 wire        pc_o_valid;
 wire [63:0] pc;
@@ -30,6 +35,8 @@ wire [63:0] pc;
 pc u_pc(
     .clk                         ( clk                         ),
     .rst                         ( rst                         ),
+    .regF_stall                 (regF_stall),
+    .regF_bubble                (regF_bubble),
     .execute_i_branch_need_jump  ( execute_o_branch_need_jump  ),
     .execute_i_branch_next_pc    ( execute_o_branch_next_pc    ),
     .execute_i_mret_need_jump    ( execute_o_mret_need_jump    ),
@@ -71,7 +78,8 @@ wire [160:0] regD_o_commit_info;
 regD u_regD(
     .clk                         ( clk                         ),
     .rst                         ( rst                         ),
-    .pipeline_flush              ( pipeline_flush              ), // 新增：跳转冲刷信号
+    .regD_stall                  (regD_stall),
+    .regD_bubble                 (regD_bubble),
     .pc_o_valid                  ( pc_o_valid                  ),
     .regD_o_allowin              ( regD_o_allowin              ),
     .regD_o_valid                ( regD_o_valid                ),
@@ -180,7 +188,8 @@ wire [160:0] regE_o_commit_info;
 regE u_regE(
     .clk                         ( clk                         ),
     .rst                         ( rst                         ),
-    .pipeline_flush              ( pipeline_flush              ), // 新增：跳转冲刷信号
+    .regE_stall                  (regE_stall),
+    .regE_bubble                 (regE_bubble),
     .decode_i_opcode_info        ( decode_o_opcode_info        ),
     .decode_i_branch_info        ( decode_o_branch_info        ),
     .decode_i_load_store_info    ( decode_o_load_store_info    ),
@@ -422,25 +431,27 @@ write_back u_write_back(
     .wb_o_reg_wen                ( wb_o_reg_wen                ) 
 );
 
-// ---------------------------------------------------------
-// 11. Commit 级
-// ---------------------------------------------------------
-// ---------------------------------------------------------
-// 11. Commit 级
-// ---------------------------------------------------------
+// outports wire
+wire [63:0]  	commit_o_mem_rdata;
+wire [63:0]  	commit_o_mem_wdata;
+wire [63:0]  	commit_o_mem_addr;
+wire         	commit_o_commit;
+wire [31:0]  	commit_o_instr;
+wire [63:0]  	commit_o_pc;
+wire [63:0]  	commit_o_next_pc;
+
 commit u_commit(
-    .regW_i_commit_info          ( regW_o_commit_info          ),
-    .regW_i_regdata2             ( regW_o_regdata2             ),
-    .regW_i_mem_rdata            ( regW_o_mem_rdata            ),
-    .regW_i_alu_result           ( regW_o_alu_result           ),
-    .regW_i_valid                ( regW_o_valid                ), // 记得连接这个信号
-    .commit_o_mem_rdata          ( commit_mem_rdata            ),
-    .commit_o_mem_wdata          ( commit_mem_wdata            ),
-    .commit_o_mem_addr           ( commit_mem_addr             ),
-    .commit_o_commit             ( commit                      ),
-    .commit_o_instr              ( commit_instr                ),
-    .commit_o_pc                 ( commit_pc                   ),
-    .commit_o_next_pc            ( commit_next_pc              )
+	.regW_i_commit_info 	( regW_o_commit_info  ),
+	.regW_i_regdata2    	( regW_o_regdata2     ),
+	.regW_i_mem_rdata   	( regW_o_mem_rdata    ),
+	.regW_i_alu_result  	( regW_o_alu_result   ),
+	.commit_o_mem_rdata 	( commit_mem_rdata  ),
+	.commit_o_mem_wdata 	( commit_mem_wdata  ),
+	.commit_o_mem_addr  	( commit_mem_addr   ),
+	.commit_o_commit    	( commit     ),
+	.commit_o_instr     	( commit_instr      ),
+	.commit_o_pc        	( commit_pc         ),
+	.commit_o_next_pc   	( commit_next_pc    )
 );
 
 assign cur_pc = pc;

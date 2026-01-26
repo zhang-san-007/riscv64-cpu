@@ -2,7 +2,8 @@
 module regE(
     input  wire         clk,
     input  wire         rst,
-    input  wire         pipeline_flush,    // 新增：流水线冲刷信号
+    input  wire         regE_stall,
+    input  wire         regE_bubble,
     input  wire [13:0]  decode_i_opcode_info,
     input  wire [5:0]   decode_i_branch_info,
     input  wire [10:0]  decode_i_load_store_info,
@@ -49,16 +50,61 @@ module regE(
 
     assign regE_ready_go  = 1'b1;
     assign regE_o_allowin = !regE_valid || (regE_ready_go && regM_allowin);
-    assign regE_o_valid   = regE_valid && regE_ready_go;
+    assign regE_o_valid   =  regE_valid && regE_ready_go;
 
     always @(posedge clk) begin
-        if (rst || pipeline_flush) begin    // 发生跳转时，将当前准备执行的指令置为无效
+        if (rst || regE_bubble) begin
+            // 状态清零
             regE_valid <= 1'b0;
-        end else if (regE_o_allowin) begin
-            regE_valid <= regD_o_valid;
+            regE_o_opcode_info      <= `nop_opcode_info;
+            regE_o_branch_info      <= `nop_branch_info;
+            regE_o_load_store_info  <= `nop_load_store_info;
+            regE_o_alu_info         <= `nop_alu_info;
+            regE_o_csrrw_info       <= `nop_csrrw_info;
+            regE_o_system_info      <= `nop_system_info;
+            regE_o_amo_info         <= `nop_amo_info;
+            //data
+            regE_o_pc               <= `nop_pc;
+            regE_o_csr_rdata1        <= `nop_csr_rdata1;
+            regE_o_csr_rdata2       <= `nop_csr_rdata2;
+            regE_o_regdata1         <= `nop_regdata1;
+            regE_o_regdata2         <= `nop_regdata2;
+            regE_o_imm              <= `nop_imm;
+            //csr
+            regE_o_csr_wid           <= `nop_csr_wid;
+            regE_o_csr_wen          <= `nop_csr_wen;
+            //reg
+            regE_o_reg_rd           <= `nop_reg_rd;
+            regE_o_reg_wen          <= `nop_reg_wen;
+            //commit
+            regE_o_commit_info      <= `nop_commit_info;
+        end 
+        else if(regE_o_allowin) begin
+            if (regD_o_valid == 1'b0) begin
+                regE_valid <= regD_o_valid;
+                regE_o_opcode_info      <= `nop_opcode_info;
+                regE_o_branch_info      <= `nop_branch_info;
+                regE_o_load_store_info  <= `nop_load_store_info;
+                regE_o_alu_info         <= `nop_alu_info;
+                regE_o_csrrw_info       <= `nop_csrrw_info;
+                regE_o_system_info      <= `nop_system_info;
+                regE_o_amo_info         <= `nop_amo_info;
+                regE_o_pc               <= `nop_pc;
+                regE_o_csr_rdata1       <= `nop_csr_rdata1;
+                regE_o_csr_rdata2       <= `nop_csr_rdata2;
+                regE_o_regdata1         <= `nop_regdata1;
+                regE_o_regdata2         <= `nop_regdata2;
+                regE_o_imm              <= `nop_imm;
+                regE_o_csr_wid          <= `nop_csr_wid;
+                regE_o_csr_wen          <= `nop_csr_wen;
+                regE_o_reg_rd           <= `nop_reg_rd;
+                regE_o_reg_wen          <= `nop_reg_wen;
+                regE_o_commit_info      <= `nop_commit_info;
+            end else begin
+                regE_valid <= regD_o_valid;
+            end
         end
-
-        if (regD_o_valid && regE_o_allowin && !pipeline_flush) begin
+        if(regD_o_valid && regE_o_allowin && !regE_bubble) begin
             regE_o_opcode_info     <= decode_i_opcode_info;
             regE_o_branch_info     <= decode_i_branch_info;
             regE_o_load_store_info <= decode_i_load_store_info;
@@ -76,8 +122,7 @@ module regE(
             regE_o_csr_wen         <= decode_i_csr_wen;
             regE_o_reg_rd          <= decode_i_reg_rd;
             regE_o_reg_wen         <= decode_i_reg_wen;
-            regE_o_commit_info     <= regD_i_commit_info;
+            regE_o_commit_info     <= regD_i_commit_info; 
         end
     end
-
 endmodule

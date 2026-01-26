@@ -26,21 +26,17 @@ void npc_close_simulation(){
 }
 
 
-//一开始有一个电路状态, clk=0, eval, clk=1, eval()
-
 void npc_single_cycle() {
-  dut.clk = 0;  dut.eval();   
-  IFDEF(CONFIG_NPC_OPEN_SIM,   m_trace->dump(sim_time++));
-  dut.clk = 1;  dut.eval(); 
-  IFDEF(CONFIG_NPC_OPEN_SIM,   m_trace->dump(sim_time++));
+  dut.clk = 0;  dut.eval();     IFDEF(CONFIG_NPC_OPEN_SIM,   m_trace->dump(sim_time++));
+  dut.clk = 1;  dut.eval();     IFDEF(CONFIG_NPC_OPEN_SIM,   m_trace->dump(sim_time++));
   update_sim_clk_count();
 }
+
 void npc_reset(int n) {
   dut.rst = 1;  
   while(n -- > 0) npc_single_cycle();
   dut.rst = 0;
 }
-//一开始有一个电路状态
 
 void npc_init() {
   IFDEF(CONFIG_NPC_OPEN_SIM, npc_open_simulation());  
