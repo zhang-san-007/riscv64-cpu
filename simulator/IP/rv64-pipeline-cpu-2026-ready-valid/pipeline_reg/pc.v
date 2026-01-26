@@ -1,6 +1,8 @@
 module pc (
     input  wire        clk,
     input  wire        rst,
+    input  wire        regF_stall,
+    input  wire        regF_bubble,
 
     input  wire        execute_i_branch_need_jump,
     input  wire [63:0] execute_i_branch_next_pc,
@@ -17,7 +19,7 @@ module pc (
 
     reg        pc_valid;
     wire       pc_ready_go;
-    assign pc_ready_go  = 1'b1;
+    assign pc_ready_go  = !regF_stall; 
     assign pc_o_allowin = !pc_valid || (pc_ready_go && regD_i_allowin);
     assign pc_o_valid   =  pc_valid && pc_ready_go;
 
@@ -27,7 +29,7 @@ module pc (
             pc       <= 64'h80000000;
         end 
         else if (pc_o_allowin) begin
-            pc_valid <= 1'b1; // 复位撤销后第一个周期就变 1
+            pc_valid <= 1'b1;
             if (pc_valid) begin
                 pc <=  execute_i_mret_need_jump   ? execute_i_mret_next_pc   :
                        execute_i_branch_need_jump ? execute_i_branch_next_pc : fetch_i_next_pc;
