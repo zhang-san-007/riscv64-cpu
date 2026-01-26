@@ -9,8 +9,8 @@
 !*.cc
 !.gitignore
 !README.md
-!Kconfig
-!.vscode
+Kconfig
+.vscode
 build
 include/config
 include/generated

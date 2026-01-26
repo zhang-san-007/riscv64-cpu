@@ -1,7 +1,8 @@
 
-COLOR_RED := $(shell echo "\033[1;31m")
-COLOR_END := $(shell echo "\033[0m")
+COLOR_RED := $(shell echo "\033[1;31m") #宏颜色
+COLOR_END := $(shell echo "\033[0m")    #红色END
 
+#检查当前目录下是否存在.config
 ifeq ($(wildcard .config),)
 $(warning $(COLOR_RED)Warning: .config does not exists!$(COLOR_END))
 $(warning $(COLOR_RED)To build the project, first run 'make menuconfig'.$(COLOR_END))
@@ -20,16 +21,16 @@ FIXDEP := $(FIXDEP_PATH)/build/fixdep
 
 $(CONF):
 	$(Q)$(MAKE) $(silent) -C $(KCONFIG_PATH) NAME=conf
-
 $(MCONF):
 	$(Q)$(MAKE) $(silent) -C $(KCONFIG_PATH) NAME=mconf
-
 $(FIXDEP):
 	$(Q)$(MAKE) $(silent) -C $(FIXDEP_PATH)
 
 menuconfig: $(MCONF) $(CONF) $(FIXDEP)
-	$(Q)$(MCONF) $(Kconfig)
-	$(Q)$(CONF) $(silent) --syncconfig $(Kconfig)
+#/home/akun/riscv64-cpu/simulator/tools/kconfig/build/mconf /home/akun/riscv64-cpu/simulator/Kconfig
+#/home/akun/riscv64-cpu/simulator/tools/kconfig/build/conf --syncconfig /home/akun/riscv64-cpu/simulator/Kconfig
+	$(MCONF) $(Kconfig)
+	$(CONF) --syncconfig $(Kconfig)
 
 savedefconfig: $(CONF)
 	$(Q)$< $(silent) --$@=configs/defconfig $(Kconfig)

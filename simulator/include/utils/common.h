@@ -8,8 +8,8 @@
 #include <utils.h>
 
 
-#include <sim_debug.h>
 #include <sim_state.h>
+#include <autoconf.h>
 
 #define __GUEST_ISA__ riscv64
 

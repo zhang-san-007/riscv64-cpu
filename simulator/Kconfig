@@ -1,20 +1,72 @@
-mainmenu "NEMU Configuration Menu"  #定义主菜单标题
-
-choice  
-  prompt "Base ISA"  
-  default ISA_riscv  
-config ISA_riscv
-  bool "riscv"
-endchoice
+mainmenu "RISC-V NPC Simulator Configuration"
 
 
+menu "Memory/RAM"
+config MBASE
+    hex "Memory Base Address"
+    default 0x80000000
+
+config MSIZE
+    hex "Memory Size"
+    default 0x8000000
+    help
+      Total size of physical memory in bytes.
+
+config PC_RESET_OFFSET
+    hex "PC Reset Offset"
+    default 0x0
+    help
+      The initial PC value will be MBASE + PC_RESET_OFFSET.
+
+config MEM_RANDOM
+    bool "Memory init with random values"
+    default y
+endmenu
+
+menu "MMIO"
+
+config UART_MMIO
+    hex "UART Address"
+    default 0x0000000010000005
+endmenu
+
+menu "debug"
+config DIFFTEST
+    bool "difftest"
+    default y
 
 config NPC_OPEN_SIM
-  bool 
-  prompt "(npc) Open Simulation"
-  default y
+    bool "enable waveform trace"
+    default y
 
-config DIFFTEST
-  bool 
-  prompt "Open Difftest"
-  default y
+config DPI_MMIO_DEBUG
+    bool "enable dpi-mmio debug"
+    default n
+
+config DIFFTEST_MMIO_DEBUG
+    bool "enable difftest-level mmio logging"
+    default n
+endmenu
+
+menu "trace"
+config TRACE
+    bool "Global Trace Enable"
+    default y
+
+config TRACE_LOG
+    bool "Enable Full Instruction Log"
+    depends on TRACE
+    default y
+
+config TRACE_SPECIAL
+    bool "special instr trace"
+    depends on TRACE
+    default y
+
+config ITRACE
+    bool "itrace"
+    depends on TRACE
+    default y
+endmenu
+
+

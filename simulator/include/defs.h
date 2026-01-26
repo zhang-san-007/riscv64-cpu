@@ -7,8 +7,8 @@
 
 void 		engine_start();
 int  		is_exit_status_bad();
-void set_sim_state(int state, u64 pc, int halt_ret);
-#define SIMTRAP(thispc, code) set_sim_state(SIM_END, thispc, code)
+void        set_sim_state(int state, u64 pc, int halt_ret);
+#define     SIMTRAP(thispc, code) set_sim_state(SIM_END, thispc, code)
 
 
 //sdb.c
@@ -17,10 +17,10 @@ void 		sdb_set_batch_mode();
 //cpu.c
 void 		cpu_exec(uint64_t n);
 const char* reg_name(int idx);
-int 	check_reg_idx(int idx);
-int 	check_csr_idx(int idx);
-void isa_csr_display(CPU_state *, const char *);
-void isa_reg_display(CPU_state *, const char *);
+int 	    check_reg_idx(int idx);
+int 	    check_csr_idx(int idx);
+void        isa_csr_display(CPU_state *, const char *);
+void        isa_reg_display(CPU_state *, const char *);
 #define pc_self  (cpu.pc)
 #define gpr(idx) (cpu.gpr[check_reg_idx(idx)])
 #define csr(idx) (cpu.csr[check_csr_idx(idx)])
@@ -50,35 +50,35 @@ bool        isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc);
 uint64_t get_time();
 
 //npc.c
-void npc_open_simulation();
-void npc_close_simulation();
-void update_cpu_state();
-void npc_single_cycle();
-void npc_reset(int n);
-void npc_init();
-void npc_exec_once();
-void npc_get_clk_count();
+void        npc_open_simulation();
+void        npc_close_simulation();
+void        update_cpu_state();
+void        npc_single_cycle();
+void        npc_reset(int n);
+void        npc_init();
+void        npc_exec_once();
+void        npc_get_clk_count();
 
 //memory.c
-void 	 init_mem();
-uint8_t* guest_to_host(paddr_t paddr);
-word_t	 pmem_read(paddr_t addr, int len);
-void	 pmem_write(paddr_t addr, int len, word_t data);
+void 	    init_mem();
+uint8_t*    guest_to_host(paddr_t paddr);
+word_t	    pmem_read(paddr_t addr, int len);
+void	    pmem_write(paddr_t addr, int len, word_t data);
 
 
 //trace----->instr_trace
-void     instr_trace_dispatch(u64 pc, u32 instr, u64 instr_count);
-void     instr_itrace_display();
+void        instr_trace_dispatch(u64 pc, u32 instr, u64 instr_count);
+void        instr_itrace_display();
 //sim
-void     sim_exit(const char *msg);
+void        sim_exit(const char *msg);
 //snapshot
-bool take_arch_snapshot   (const CPU_state *, const uint8_t *);
-bool restore_arch_snapshot(CPU_state *, uint8_t *);
+bool        take_arch_snapshot   (const CPU_state *, const uint8_t *);
+bool        restore_arch_snapshot(CPU_state *, uint8_t *);
 
 //
-bool log_enable();
-void dump_pmem_4kb();
-void dump_pmem_to_log();
+bool        log_enable();
+void        dump_pmem_4kb();
+void        dump_pmem_to_log();
 
 
 //全局变量
@@ -91,9 +91,8 @@ extern SIMState   sim_state;
 extern FILE *log_fp;
 extern u64 sim_time;
 extern u64 clk_count;
-void update_sim_clk_count();
-
-void update_instr_count();
-bool instr_exec_one_million();
+void        update_sim_clk_count();
+void        update_instr_count();
+bool        instr_exec_one_million();
 
 #endif

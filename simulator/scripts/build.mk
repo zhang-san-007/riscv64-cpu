@@ -1,6 +1,5 @@
 .DEFAULT_GOAL = app
 
-# Add necessary options if the target is a shared library
 ifeq ($(SHARE),1)
 SO = -so
 CFLAGS  += -fPIC -fvisibility=hidden
@@ -14,7 +13,6 @@ INC_PATH := $(NEMU_HOME)/src/trace $(WORK_DIR)/include $(INC_PATH)
 OBJ_DIR  = $(BUILD_DIR)/obj-$(NAME)$(SO)
 BINARY   = $(BUILD_DIR)/$(NAME)$(SO)
 
-# Compilation flags
 ifeq ($(CC),clang)
 CXX := clang++
 else
@@ -28,7 +26,6 @@ LDFLAGS := -O2 $(LDFLAGS) -lelf
 OBJS   = $(SRCS:%.c=$(OBJ_DIR)/%.o) $(CXXSRC:%.cc=$(OBJ_DIR)/%.o)
 
 
-#@author: akun
 TRACE_DIR = $(BUILD_DIR)/trace
 $(shell mkdir -p $(TRACE_DIR)) # 使用 -p 选项，避免目录已存在时报错
 
