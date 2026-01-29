@@ -2,6 +2,8 @@
 module regM(    
     input  wire         clk,
     input  wire         rst,
+    input  wire         regM_stall,
+    input  wire         regM_bubble,
     input  wire [10:0]  regE_i_load_store_info,
     input  wire [13:0]  regE_i_opcode_info,
     input  wire [5:0]   regE_i_csrrw_info,
@@ -17,10 +19,11 @@ module regM(
     input  wire [4:0]   regE_i_reg_rd,
     input  wire         regE_i_reg_wen,
     input  wire [160:0] execute_i_commit_info,
-    input  wire         regE_o_valid,
-    output wire         regM_o_allowin,    // 已修改为输出信号
+    input  wire         regE_i_valid,
+    input  wire         regW_i_allowin,
+
+    output wire         regM_o_allowin,    
     output wire         regM_o_valid,
-    input  wire         regW_allowin,
     output reg  [10:0]  regM_o_load_store_info,
     output reg  [13:0]  regM_o_opcode_info,
     output reg  [5:0]   regM_o_csrrw_info,
@@ -41,44 +44,34 @@ module regM(
     reg         regM_valid;
     wire        regM_ready_go;
 
-//让别人进只有两种情况
-//  第一种是我自身无效
-//  第二种是我准备好了，然后后一级别和我说你来吧。
-
-
     assign regM_ready_go  = 1'b1;
-    assign regM_o_allowin = !regM_valid || (regM_ready_go && regW_allowin);
+    // 修正：regW_allowin -> regW_i_allowin
+    assign regM_o_allowin = !regM_valid || (regM_ready_go && regW_i_allowin);
     assign regM_o_valid   =  regM_valid && regM_ready_go;
 
-
-always @(posedge clk) begin
+    always @(posedge clk) begin
         if (rst) begin
-            regM_valid         <= 1'b0;
-            // 复位时强制清理关键控制位和 commit_info
+            regM_valid              <= 1'b0;
             regM_o_load_store_info  <= `nop_load_store_info;
             regM_o_opcode_info      <= `nop_opcode_info;
             regM_o_csrrw_info       <= `nop_csrrw_info;
             regM_o_system_info      <= `nop_system_info;
             regM_o_amo_info         <= `nop_amo_info;
-            //data
             regM_o_regdata2         <= `nop_regdata2;
             regM_o_regdata1         <= `nop_regdata1;
-
             regM_o_alu_result       <= `nop_alu_result;
-            regM_o_pc               <= `nop_pc;  // 清零程序计数器
-            regM_o_csr_rdata1        <= `nop_csr_rdata1;
-            //reg
+            regM_o_pc               <= `nop_pc;
+            regM_o_csr_rdata1       <= `nop_csr_rdata1;
             regM_o_reg_rd           <= `nop_reg_rd;
             regM_o_reg_wen          <= `nop_reg_wen;
-            //csr
-            regM_o_csr_wid           <= `nop_csr_wid;
+            regM_o_csr_wid          <= `nop_csr_wid;
             regM_o_csr_wen          <= `nop_csr_wen;
-            //commit
             regM_o_commit_info      <= `nop_commit_info;
         end 
         else if (regM_o_allowin) begin
-            if (regE_o_valid == 1'b0) begin
-                regM_valid <= regE_o_valid;
+            // 修正：regE_o_valid -> regE_i_valid
+            if (regE_i_valid == 1'b0) begin
+                regM_valid <= regE_i_valid;
                 regM_o_load_store_info  <= `nop_load_store_info;
                 regM_o_opcode_info      <= `nop_opcode_info;
                 regM_o_csrrw_info       <= `nop_csrrw_info;
@@ -88,17 +81,19 @@ always @(posedge clk) begin
                 regM_o_regdata1         <= `nop_regdata1;
                 regM_o_alu_result       <= `nop_alu_result;
                 regM_o_pc               <= `nop_pc;
-                regM_o_csr_rdata1        <= `nop_csr_rdata1;
+                regM_o_csr_rdata1       <= `nop_csr_rdata1;
                 regM_o_reg_rd           <= `nop_reg_rd;
                 regM_o_reg_wen          <= `nop_reg_wen;
-                regM_o_csr_wid           <= `nop_csr_wid;
+                regM_o_csr_wid          <= `nop_csr_wid;
                 regM_o_csr_wen          <= `nop_csr_wen;
                 regM_o_commit_info      <= `nop_commit_info;
             end else begin
-                regM_valid <= regE_o_valid;
+                regM_valid <= regE_i_valid;
             end
         end
-        if (regE_o_valid && regM_o_allowin) begin
+
+        // 修正：regE_o_valid -> regE_i_valid
+        if (regE_i_valid && regM_o_allowin && !regM_bubble) begin
             regM_o_load_store_info  <= regE_i_load_store_info;
             regM_o_opcode_info      <= regE_i_opcode_info;
             regM_o_csrrw_info       <= regE_i_csrrw_info;
@@ -117,6 +112,3 @@ always @(posedge clk) begin
         end
     end
 endmodule
-
-
-

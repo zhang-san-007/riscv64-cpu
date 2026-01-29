@@ -1,5 +1,5 @@
 TOPNAME :=top_cpu
-CPU_DIR=$(SIM_HOME)/IP/rv64-pipeline-cpu-2026-ready-valid
+CPU_DIR=$(SIM_HOME)/IP/rv64-pipeline-cpu-2026
 SRC_DIR:=$(SIM_HOME)/src  
 
 
@@ -40,7 +40,7 @@ RUN    = 🏃
 
 default: $(BIN)
 generate:
-	python3 scripts/verilog.py $(CPU_DIR)/top_cpu.v
+	python3 scripts/verilog.py $(CPU_DIR)/$(TOPNAME).v
 $(BIN): generate $(VSRCS) $(CSRCS) $(AUTOCONF_H)
 	@echo "$(BLUE)$(BUILD) [1/2] Preparing build directory...$(RESET)"
 	@mkdir -p $(BUILD_DIR)

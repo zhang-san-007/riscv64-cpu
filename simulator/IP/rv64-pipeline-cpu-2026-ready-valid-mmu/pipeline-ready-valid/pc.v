@@ -11,6 +11,7 @@ module pc (
 
     input  wire [63:0] fetch_i_next_pc,
 
+    //ready-valid
     input  wire        regD_i_allowin,
     output wire        pc_o_allowin,   // 修改：变为 output 信号
     output wire        pc_o_valid,

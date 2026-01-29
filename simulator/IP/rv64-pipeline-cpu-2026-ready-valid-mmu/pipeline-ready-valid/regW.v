@@ -2,6 +2,8 @@
 module regW(
     input  wire         clk,
     input  wire         rst,
+    input  wire         regW_stall,
+    input  wire         regW_bubble,
     input  wire [13:0]  regM_i_opcode_info,
     input  wire [5:0]   regM_i_csrrw_info,
     input  wire [6:0]   regM_i_system_info,
@@ -16,10 +18,10 @@ module regW(
     input  wire [4:0]   regM_i_reg_rd,
     input  wire         regM_i_reg_wen,
     input  wire [160:0] regM_i_commit_info,
-    input  wire         regM_o_valid,
+    input  wire         regM_i_valid,
+
     output wire         regW_o_allowin,    
     output wire         regW_o_valid,
-    // 移除了 wb_ready
     output reg  [13:0]  regW_o_opcode_info,
     output reg  [5:0]   regW_o_csrrw_info,
     output reg  [6:0]   regW_o_system_info,
@@ -40,54 +42,50 @@ module regW(
     wire        regW_ready_go;
 
     assign regW_ready_go  = 1'b1;
-    // 修改：不再依赖 wb_ready，认为下游始终准备就绪
     assign regW_o_allowin = !regW_valid || regW_ready_go;
     assign regW_o_valid   =  regW_valid && regW_ready_go;
 
     always @(posedge clk) begin
         if (rst) begin
             regW_valid         <= 1'b0;
-
             regW_o_opcode_info  <= `nop_opcode_info;
-            regW_o_csrrw_info   <=  `nop_csrrw_info;
-            regW_o_system_info  <=  `nop_system_info;
-            regW_o_amo_info     <=  `nop_amo_info;
-            //
-            regW_o_alu_result   <=  `nop_alu_result;
-            regW_o_mem_rdata    <=  `nop_mem_rdata;
-            regW_o_pc           <=  `nop_pc;
-            regW_o_csr_rdata1   <=  `nop_csr_rdata1;
-            regW_o_regdata2     <=  `nop_regdata2;
-            //reg
-            regW_o_reg_rd       <=  `nop_reg_rd;
-            regW_o_reg_wen      <=  `nop_reg_wen;
-            //csr
-            regW_o_csr_wid       <=  `nop_csr_wid;
-            regW_o_csr_wen      <=  `nop_csr_wen;
-            regW_o_commit_info  <=  `nop_commit_info;
+            regW_o_csrrw_info   <= `nop_csrrw_info;
+            regW_o_system_info  <= `nop_system_info;
+            regW_o_amo_info     <= `nop_amo_info;
+            regW_o_alu_result   <= `nop_alu_result;
+            regW_o_mem_rdata    <= `nop_mem_rdata;
+            regW_o_pc           <= `nop_pc;
+            regW_o_csr_rdata1   <= `nop_csr_rdata1;
+            regW_o_regdata2     <= `nop_regdata2;
+            regW_o_reg_rd       <= `nop_reg_rd;
+            regW_o_reg_wen      <= `nop_reg_wen;
+            regW_o_csr_wid      <= `nop_csr_wid;
+            regW_o_csr_wen      <= `nop_csr_wen;
+            regW_o_commit_info  <= `nop_commit_info;
         end 
         else if (regW_o_allowin) begin
-            if (regM_o_valid == 1'b0) begin
-                regW_valid <= regM_o_valid;
-                regW_o_opcode_info  <=  `nop_opcode_info;
-                regW_o_csrrw_info   <=  `nop_csrrw_info;
-                regW_o_system_info  <=  `nop_system_info;
-                regW_o_amo_info     <=  `nop_amo_info;
-                regW_o_alu_result   <=  `nop_alu_result;
-                regW_o_mem_rdata    <=  `nop_mem_rdata;
-                regW_o_pc           <=  `nop_pc;
-                regW_o_csr_rdata1   <=  `nop_csr_rdata1;
-                regW_o_regdata2    <=  `nop_regdata2;
-                regW_o_reg_rd       <=  `nop_reg_rd;
-                regW_o_reg_wen      <=  `nop_reg_wen;
-                regW_o_csr_wid      <=  `nop_csr_wid;
-                regW_o_csr_wen      <=  `nop_csr_wen;
-                regW_o_commit_info  <=  `nop_commit_info;
+            if (regM_i_valid == 1'b0) begin
+                regW_valid <= regM_i_valid;
+                regW_o_opcode_info  <= `nop_opcode_info;
+                regW_o_csrrw_info   <= `nop_csrrw_info;
+                regW_o_system_info  <= `nop_system_info;
+                regW_o_amo_info     <= `nop_amo_info;
+                regW_o_alu_result   <= `nop_alu_result;
+                regW_o_mem_rdata    <= `nop_mem_rdata;
+                regW_o_pc           <= `nop_pc;
+                regW_o_csr_rdata1   <= `nop_csr_rdata1;
+                regW_o_regdata2     <= `nop_regdata2;
+                regW_o_reg_rd       <= `nop_reg_rd;
+                regW_o_reg_wen      <= `nop_reg_wen;
+                regW_o_csr_wid      <= `nop_csr_wid;
+                regW_o_csr_wen      <= `nop_csr_wen;
+                regW_o_commit_info  <= `nop_commit_info;
             end else begin
-                regW_valid <= regM_o_valid;
+                regW_valid <= regM_i_valid;
             end
         end
-        if (regM_o_valid &&regW_o_allowin) begin
+        
+        if (regM_i_valid && regW_o_allowin && !regW_bubble) begin
             regW_o_opcode_info <= regM_i_opcode_info;
             regW_o_csrrw_info  <= regM_i_csrrw_info;
             regW_o_system_info <= regM_i_system_info;
