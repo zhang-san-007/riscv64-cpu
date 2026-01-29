@@ -56,15 +56,19 @@ wire inst_sd    =   regM_i_load_store_info[0];
 wire inst_load  =   inst_lb | inst_lh | inst_lw | inst_ld | inst_lbu | inst_lhu | inst_lwu;
 wire inst_store =   inst_sb | inst_sh | inst_sw | inst_sd;
 
-reg [63:0] mem_rdata;
-always @(*) begin
-    if(inst_load)begin
-        mem_rdata = dpi_mem_read(mem_addr, 8, regM_i_pc);
-    end
-    else begin
-        mem_rdata = 64'd0;
-    end
-end
+// reg [63:0] mem_rdata;
+// always @(*) begin
+//     if(inst_load)begin
+//         mem_rdata = dpi_mem_read(mem_addr, 8, regM_i_pc);
+//     end
+//     else begin
+//         mem_rdata = 64'd0;
+//     end
+// end
+
+wire [63:0] mem_rdata = (inst_load) ? dpi_mem_read(mem_addr, 8, regM_i_pc) : 64'd0;
+
+
 assign memory_o_mem_rdata  = (inst_lb)          ?     { {56{mem_rdata[7]}},    mem_rdata[7 :0]}   :
                              (inst_lh)          ?     { {48{mem_rdata[15]}},   mem_rdata[15:0]}   :  
                              (inst_lw)          ?     { {32{mem_rdata[31]}},   mem_rdata[31:0]}   :
@@ -74,23 +78,15 @@ assign memory_o_mem_rdata  = (inst_lb)          ?     { {56{mem_rdata[7]}},    m
                              (inst_lwu)         ?     { 32'd0,                 mem_rdata[31:0]}   : 
                              (inst_amoswapw)    ?     { {32{mem_rdata[31]}},   mem_rdata[31:0]}   : 64'd0;
                              
+wire [31:0] mem_wlen = (inst_sb) ? 32'd1:
+                       (inst_sh) ? 32'd2:
+                       (inst_sw) ? 32'd4:
+                       (inst_sd) ? 32'd8: 
+                       (inst_amoswapw) ? 32'd4 : 32'd0;
 
-//要写入的数据
 always @(posedge clk) begin
-	if(inst_sb) begin
-		dpi_mem_write(mem_addr, mem_wdata, 1, regM_i_pc);
+	if(inst_store | inst_amoswapw) begin
+		dpi_mem_write(mem_addr, mem_wdata, mem_wlen, regM_i_pc);
 	end
-	else if(inst_sh) begin
-		dpi_mem_write(mem_addr, mem_wdata, 2, regM_i_pc);		
-	end
-	else if(inst_sw) begin
-		dpi_mem_write(mem_addr, mem_wdata, 4, regM_i_pc);				
-	end
-    else if(inst_sd) begin
-        dpi_mem_write(mem_addr, mem_wdata, 8, regM_i_pc);		
-    end
-    else if(inst_amoswapw) begin
-        dpi_mem_write(mem_addr, mem_wdata, 4, regM_i_pc);
-    end
 end
 endmodule
