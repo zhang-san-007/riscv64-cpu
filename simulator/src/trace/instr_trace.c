@@ -137,8 +137,7 @@ void instr_special_trace(u64 pc, u32 instr, u64 instr_count) {
 //----------------------------------------instr_special_trace---end--------------------------------------------------
 
 void instr_trace_dispatch(u64 pc, u32 instr, u64 instr_count){
-    instr_trace(pc, instr, instr_count);
-//    IFDEF(CONFIG_TRACE_LOG,         instr_trace(pc, instr, instr_count));
-//    IFDEF(CONFIG_TRACE_SPECIAL,     instr_special_trace(pc, instr, instr_count));
+    IFDEF(CONFIG_TRACE_LOG,         instr_trace(pc, instr, instr_count));
+    IFDEF(CONFIG_TRACE_SPECIAL,     instr_special_trace(pc, instr, instr_count));
     IFDEF(CONFIG_ITRACE,            instr_itrace(pc , instr));
 }

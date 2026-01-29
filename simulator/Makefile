@@ -39,8 +39,9 @@ RUN    = 🏃
 # --- 构建规则 ---
 
 default: $(BIN)
-
-$(BIN): $(VSRCS) $(CSRCS) $(AUTOCONF_H)
+generate:
+	python3 scripts/verilog.py $(CPU_DIR)/top_cpu.v
+$(BIN): generate $(VSRCS) $(CSRCS) $(AUTOCONF_H)
 	@echo "$(BLUE)$(BUILD) [1/2] Preparing build directory...$(RESET)"
 	@mkdir -p $(BUILD_DIR)
 	@rm -rf $(OBJ_DIR)
@@ -53,10 +54,8 @@ $(BIN): $(VSRCS) $(CSRCS) $(AUTOCONF_H)
 
 override ARGS ?= --log=$(SIM_HOME)/bin/npc-log.txt
 override ARGS += --diff=$(SIM_HOME)/diff/riscv64-spike-so
+override ARGS += --batch
 
-ifeq ($(CONFIG_BATCH_MODE),y)
-    override ARGS += --batch
-endif
 
 run: $(BIN)
 	@echo "$(CYAN)$(RUN) Launching simulation...$(RESET)"

@@ -1,6 +1,5 @@
 mainmenu "RISC-V NPC Simulator Configuration"
 
-
 menu "Memory/RAM"
 config MBASE
     hex "Memory Base Address"
@@ -9,15 +8,10 @@ config MBASE
 config MSIZE
     hex "Memory Size"
     default 0x8000000
-    help
-      Total size of physical memory in bytes.
 
 config PC_RESET_OFFSET
     hex "PC Reset Offset"
     default 0x0
-    help
-      The initial PC value will be MBASE + PC_RESET_OFFSET.
-
 config MEM_RANDOM
     bool "Memory init with random values"
     default y
@@ -32,19 +26,19 @@ endmenu
 
 menu "debug"
 config DIFFTEST
-    bool "difftest"
+    bool "open difftest"
     default y
 
 config NPC_OPEN_SIM
-    bool "enable waveform trace"
+    bool "waveform trace"
     default y
 
-config DPI_MMIO_DEBUG
-    bool "enable dpi-mmio debug"
+config DPI_MEM_DEBUG
+    bool "dpi mem debug"
     default n
 
 config DIFFTEST_MMIO_DEBUG
-    bool "enable difftest-level mmio logging"
+    bool "difftest mmio debug"
     default n
 endmenu
 
