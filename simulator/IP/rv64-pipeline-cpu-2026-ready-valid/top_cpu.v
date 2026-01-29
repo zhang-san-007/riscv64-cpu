@@ -14,18 +14,6 @@ module top_cpu(
     output wire [63:0]    cur_pc
 );
 
-wire branch_bubble      =         execute_o_branch_need_jump || execute_o_mret_need_jump;
-wire load_use           = (regE_o_reg_rd == decode_o_reg_rs1 || regE_o_reg_rd == decode_o_reg_rs2) && regE_o_opcode_info[3];
-
-
-wire regF_stall     = load_use;
-wire regD_stall     = load_use;
-wire regE_stall     = 1'b0;
-
-wire regF_bubble    = 1'b0;
-wire regD_bubble    = branch_bubble;
-wire regE_bubble    = branch_bubble | load_use;
-
 
 
 wire        pc_o_allowin;
@@ -430,6 +418,38 @@ write_back u_write_back(
     .wb_o_reg_wdata              ( wb_o_reg_wdata              ),
     .wb_o_reg_wen                ( wb_o_reg_wen                ) 
 );
+// outports wire
+wire        	regF_stall;
+wire        	regD_stall;
+wire        	regE_stall;
+wire        	regM_stall;
+wire        	regW_stall;
+wire        	regF_bubble;
+wire        	regD_bubble;
+wire        	regE_bubble;
+wire        	regM_bubble;
+wire        	regW_bubble;
+
+ctrl u_ctrl(
+	.execute_i_branch_need_jump 	( execute_o_branch_need_jump   ),
+	.execute_i_mret_need_jump   	( execute_o_mret_need_jump     ),
+	.decode_i_opcode_info       	( decode_o_opcode_info         ),
+	.regE_i_opcode_info         	( regE_o_opcode_info           ),
+	.regM_i_opcode_info         	( regM_o_opcode_info           ),
+	.regE_i_reg_rd              	( regE_o_reg_rd                ),
+	.decode_i_reg_rs1           	( decode_o_reg_rs1             ),
+	.decode_i_reg_rs2           	( decode_o_reg_rs2             ),
+	.regF_stall                 	( regF_stall                  ),
+	.regD_stall                 	( regD_stall                  ),
+	.regE_stall                 	( regE_stall                  ),
+	.regM_stall                 	( regM_stall                  ),
+	.regW_stall                 	( regW_stall                  ),
+	.regF_bubble                	( regF_bubble                 ),
+	.regD_bubble                	( regD_bubble                 ),
+	.regE_bubble                	( regE_bubble                 ),
+	.regM_bubble                	( regM_bubble                 ),
+	.regW_bubble                	( regW_bubble                 )
+);
 
 // outports wire
 wire [63:0]  	commit_o_mem_rdata;
@@ -455,5 +475,4 @@ commit u_commit(
 );
 
 assign cur_pc = pc;
-
 endmodule

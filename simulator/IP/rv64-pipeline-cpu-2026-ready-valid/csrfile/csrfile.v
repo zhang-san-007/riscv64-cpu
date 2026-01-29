@@ -2,7 +2,6 @@ module csrfile(
     input clk,
     input rst,
     input wire  [6 :0] wb_i_system_info,
-    //write
     input wire         wb_i_csr_wen,
     input wire  [11:0] wb_i_csr_wid,
     input wire  [63:0] wb_i_csr_wdata,
@@ -10,11 +9,13 @@ module csrfile(
     input  wire [11:0] decode_i_csr_rid1,
     input  wire [11:0] decode_i_csr_rid2,
     output wire [63:0] csr_o_csr_rdata1,
-    output wire [63:0] csr_o_csr_rdata2
+    output wire [63:0] csr_o_csr_rdata2,
+    output wire [63:0] csr_o_csr_satp,
 ); 
 reg [63:0] csrfile[4096];
 reg [ 1:0] cpu_mode;
 
+assign csr_o_csr_satp = csrfile[`satp];
 
 // ==================== 性能计数器 ====================
 wire [63:0] cycle      = csrfile[`cycle];      // 12'hC00 - 时钟周期计数器

@@ -1,154 +1,137 @@
-// module MemoryManagementUnit (
-//     input  wire        clock,                   //时钟
-//     input  wire        reset,                   //复位
+/* verilator lint_off WIDTHTRUNC */
 
-//     //下面这三个信号是翻译配置
-//     input  wire        translation_enable,      //是否允许翻译
-//     input  wire [38:0] virtual_address,         //虚拟地址
-//     input  wire [43:0] satp_root_page_frame,    //stap的页表起始地址
+module mmu(
+    input  wire        clk,           
+    input  wire        rst,             
+    input  wire [63:0] va,              // 虚拟地址
+    input  wire        va_i_valid,      // 请求有效信号
+    input  wire [63:0] satp,            // SATP 寄存器
 
-//     //任务握手，MMU可以工作且CPU发起请求
-//     input  wire        request_valid,           //CPU告诉MMU，我有一个虚拟地址要转换，你准备开工吧，这是一个valid信号
-//     output reg         request_ready,           //MMU告诉CPU，我现在能够工作进行虚实地址转换了
+    output reg         mmu_o_ready,     // MMU 准备好接收新请求
+    output reg  [63:0] mmu_o_pa,        // 翻译后的物理地址
+    output reg         mmu_o_valid      // 输出有效
+);
 
-//     //这个是MMU翻译完成之后给CPU的结果交付
-//     output reg  [55:0] physical_address,        //物理地址
-//     output reg         address_valid,           //这个信号是说MMU的地址翻译结果出来了
+    // --- 状态机定义 ---
+    localparam STATE_IDLE      = 3'd0;
+    localparam STATE_FETCH_PTE = 3'd1; // 发起内存读取
+    localparam STATE_CHECK_PTE = 3'd2; // 检查条目并决定下一步
+    localparam STATE_DONE      = 3'd3;
 
-//     //异常反馈
-//     output reg         page_fault,              //页故障，翻译并不是每次都能成功的
+    reg [2:0]  current_state;
+    reg [1:0]  level;          // 记录当前遍历层级 (2 -> 1 -> 0)
+    reg [63:0] current_pte;
+    reg [63:0] v_addr_reg;     // 锁存输入的 va
 
+    // DPI 函数声明
+    import "DPI-C" function longint dpi_mem_read (input longint addr, input int len, input longint pc);
 
-//     //下面这四个信号是相互配合的，是因为MMU内部没有页表，MMU需要从内存里面去取数据
-//     input  wire [63:0] memory_read_data,        //MMU遍历页表的时候，要从内存里面读数据，这个是内存返回的数据
-//     input  wire        memory_response_valid    //这个表示内存返回的数据是否有效
-//     output reg  [55:0] memory_access_address,   //MMU内部没有页表，需要从内存里面去访问，所以有一个内存访问地址
-//     output reg         memory_read_enable,      //MMU内部没有页表，需要从内存里面去访问，所以有一个读内存_en
-// );
+    // --- 辅助信号解析 ---
+    wire [43:0] satp_ppn       = satp[43:0];
+    wire [3:0]  satp_mode      = satp[63:60];
+    wire        translation_en = (satp_mode == 4'd8); 
 
-//     localparam STATE_IDLE         = 3'd0;   //state_idle,idle是空闲的空置的，表明MMU是空闲的，可以工作
-//     localparam STATE_WALK_LEVEL2  = 3'd1;   //state_walk_level2，地址翻译的第一步
-//     localparam STATE_WALK_LEVEL1  = 3'd2;   //state_walk_level1，地址翻译的第二步
-//     localparam STATE_WALK_LEVEL0  = 3'd3;   //state_walk_levle0，地址翻译的第三步
-//     localparam STATE_DONE         = 3'd4;   //state_done       ，地址翻译的最终点，无论是成功翻译还是有错误。
+    // 根据当前层级获取对应的 VPN 段 (Sv39: 9 bits per level)
+    wire [8:0] vpn_at_level = (level == 2'd2) ? v_addr_reg[38:30] :
+                              (level == 2'd1) ? v_addr_reg[29:21] : 
+                                                v_addr_reg[20:12];
 
-//     reg [2:0] current_state;        //现在的状态，000，可以表示八个状态，涵盖了上面的5个状态。
+    // PTE 属性解析 (RISC-V Sv39 标准)
+    wire pte_v   = current_pte[0];
+    wire pte_r   = current_pte[1];
+    wire pte_w   = current_pte[2];
+    wire pte_x   = current_pte[3];
+    wire is_leaf = (pte_r | pte_w | pte_x);
 
-//     // 64bit VA = { [63:39],  [38:30],  [29:21],  [20:12],  [11:0] }
-//     //               符号扩    VPN[2]    VPN[1]    VPN[0]    Offset
-//     wire [8:0] vpn [2:0];           //vpn, vpn0,vpn1,vpn2       vpn是va里面的来的
-//     assign vpn[2] = virtual_address[38:30];
-//     assign vpn[1] = virtual_address[29:21];
-//     assign vpn[0] = virtual_address[20:12];
-//     wire [11:0] page_offset = virtual_address[11:0];    //页表偏移量
+    // --- 严谨的地址计算逻辑 (修复 67-bit 警告) ---
+    wire [63:0] base_addr;
+    wire [63:0] offset;
+    wire [63:0] next_pte_addr_raw;
+    wire [63:0] next_pte_addr;
 
+    // 分离基地址与偏移量计算，强制 64 位宽
+    assign base_addr = (current_state == STATE_IDLE) ? 
+                       {8'b0, satp_ppn, 12'b0} : 
+                       {8'b0, current_pte[53:10], 12'b0};
 
-//     // 64bit PTE = { [63:61], [60:54],   [53:28], [27:19], [18:10], [9:8], [7], [6], [5], [4], [3], [2], [1], [0] }
-//     //                PBMT     Reserved   PPN[2]   PPN[1]   PPN[0]   RSW    D    A    G    U    X    W    R    V
+    assign offset    = (current_state == STATE_IDLE) ? 
+                       {53'b0, va[38:30], 3'b0} : 
+                       {53'b0, vpn_at_level, 3'b0};
 
-//     wire pte_valid = memory_read_data[0];           //V     从内存里面读出来的pte
-//     wire pte_read  = memory_read_data[1];           //R
-//     wire pte_write = memory_read_data[2];           //W
-//     wire pte_exec  = memory_read_data[3];           //X
-//     wire [43:0] pte_ppn = memory_read_data[53:10];  //pte
+    assign next_pte_addr_raw = base_addr + offset;
+    assign next_pte_addr     = next_pte_addr_raw[63:0]; // 显式截断确保 64 位
 
-//     //表示该pte是否为终点
-//     //如果R=0, W=0, X=0，硬件认为这个PTE是一个指针，指向下一级页表
-//     //如果R, W, X至少有一个为1，硬件认为
-//     //R=1, 这是一个可读的数据页
-//     //X=1，这是一个包含可执行代码的指令页
-//     //在RISC-V中只要可写，就一定可读，只要可W，那么就一定可R。
-//     //即只要W=1，那么R一定等于1，R不能等于0.
-//     //但是R=1是，W不一定=1。
-//     wire is_leaf_pte = (pte_read | pte_write | pte_exec); //   
+    // --- 状态转移逻辑 ---
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            current_state <= STATE_IDLE;
+            mmu_o_ready   <= 1'b1;
+            mmu_o_valid   <= 1'b0;
+            mmu_o_pa      <= 64'b0;
+            level         <= 2'd2;
+            current_pte   <= 64'b0;
+            v_addr_reg    <= 64'b0;
+        end else begin
+            case (current_state)
+                STATE_IDLE: begin
+                    mmu_o_valid <= 1'b0;
+                    if (va_i_valid && mmu_o_ready) begin
+                        v_addr_reg <= va;
+                        if (!translation_en) begin
+                            mmu_o_pa    <= va; // Bare 模式直接透传
+                            mmu_o_valid <= 1'b1;
+                        end else begin
+                            mmu_o_ready <= 1'b0;
+                            level       <= 2'd2;
+                            // 第一次读取：从 SATP 根页表开始
+                            current_pte   <= dpi_mem_read(next_pte_addr, 8, 0);
+                            current_state <= STATE_CHECK_PTE;
+                        end
+                    end
+                end
 
-//     always @(posedge clock or posedge reset) begin
-//         if (reset) begin
-//             current_state <= STATE_IDLE;    //MMU属于空闲状态。
-//             request_ready <= 1'b1;          //MMU现在是空闲的，可以工作了。
-//             address_valid <= 1'b0;          //MMU的翻译结果还没有出来，pa是无效的。
-//             page_fault    <= 1'b0;          //清除之前的页故障标志。
-//             physical_address   <= 56'b0;    //物理地址为0
+                STATE_FETCH_PTE: begin
+                    // 读取下一级页表项
+                    current_pte   <= dpi_mem_read(next_pte_addr, 8, 0);
+                    current_state <= STATE_CHECK_PTE;
+                end
 
-//             memory_read_enable <= 1'b0;     //不读内存
-//             memory_access_address <= 56'b0; //访问内存的地址为0
-//         end else begin
-//             case (current_state)
-//                 STATE_IDLE: begin
-//                     address_valid <= 1'b0;      //这个表明mmu给出去的物理地址是无效的
-//                     page_fault    <= 1'b0;      //页表不故障。
-//                     if (request_valid) begin    //如果有地址翻译的请求
-//                         //MMU不工作
-//                         if (!translation_enable) begin
-//                             physical_address <= {17'b0, virtual_address};
-//                             address_valid    <= 1'b1;
-//                         //MMU开始工作
-//                         end else begin
-//                             request_ready <= 1'b0;      //表明MMU繁忙，不接受新的请求
-//                             current_state <= STATE_WALK_LEVEL2; //开始第一个地址工作
-//                             memory_access_address <= {satp_root_page_frame, 12'b0} + {32'b0, vpn[2], 3'b0};   //准备读页表内存
-//                             memory_read_enable    <= 1'b1;      //准备读页表内存
-//                         end
-//                     end
-//                 end
+                STATE_CHECK_PTE: begin
+                    if (!pte_v || (!pte_r && pte_w)) begin
+                        // 异常处理：无效位或 R=0,W=1 的非法组合
+                        mmu_o_pa      <= 64'hFFFF_FFFF_FFFF_FFFF; 
+                        current_state <= STATE_DONE;
+                    end else if (is_leaf) begin
+                        // 发现叶节点，根据当前 Level 拼接物理地址 (支持大页)
+                        case (level)
+                            2'd2: mmu_o_pa <= {8'b0, current_pte[53:28], v_addr_reg[29:0]}; // 1G page
+                            2'd1: mmu_o_pa <= {8'b0, current_pte[53:19], v_addr_reg[20:0]}; // 2M page
+                            2'd0: mmu_o_pa <= {8'b0, current_pte[53:10], v_addr_reg[11:0]}; // 4K page
+                            default: mmu_o_pa <= 64'hFFFF_FFFF_FFFF_FFFF;
+                        endcase
+                        current_state <= STATE_DONE;
+                    end else if (level == 2'd0) begin
+                        // 异常：遍历到 Level 0 仍不是叶子节点
+                        mmu_o_pa      <= 64'hFFFF_FFFF_FFFF_FFFF;
+                        current_state <= STATE_DONE;
+                    end else begin
+                        // 向下一级页表进发
+                        level         <= level - 1'b1;
+                        current_state <= STATE_FETCH_PTE;
+                    end
+                end
 
-//                 STATE_WALK_LEVEL2: begin
-//                     //如果内存返回的数据有效
-//                     if (memory_response_valid) begin
-//                         //如果pte无效
-//                         if (!pte_valid) begin
-//                             page_fault    <= 1'b1;          
-//                             current_state <= STATE_DONE; //翻译结束
-//                         //如果是叶子结点 
-//                         end else if (is_leaf_pte) begin
-//                             //构造物理地址
-//                             physical_address <= {pte_ppn[43:18], virtual_address[29:0]};
-//                             current_state    <= STATE_DONE;//翻译结束
-//                         //继续向下翻译
-//                         end else begin
-//                             //构建访问页表的地址
-//                             memory_access_address <= {pte_ppn, 12'b0} + {32'b0, vpn[1], 3'b0};
-//                             current_state <= STATE_WALK_LEVEL1; //开始下一级翻译
-//                         end
-//                     end
-//                 end
+                STATE_DONE: begin
+                    mmu_o_valid   <= 1'b1;
+                    mmu_o_ready   <= 1'b1;
+                    current_state <= STATE_IDLE;
+                end
 
-//                 STATE_WALK_LEVEL1: begin
-//                     if (memory_response_valid) begin
-//                         if (!pte_valid) begin
-//                             page_fault    <= 1'b1;
-//                             current_state <= STATE_DONE;
-//                         end else if (is_leaf_pte) begin
-//                             physical_address <= {pte_ppn[43:9], virtual_address[20:0]};
-//                             current_state    <= STATE_DONE;
-//                         end else begin
-//                             memory_access_address <= {pte_ppn, 12'b0} + {32'b0, vpn[0], 3'b0};
-//                             current_state <= STATE_WALK_LEVEL0;
-//                         end
-//                     end
-//                 end
+                default: current_state <= STATE_IDLE;
+            endcase
+        end
+    end
 
-//                 STATE_WALK_LEVEL0: begin
-//                     if (memory_response_valid) begin
-//                         if (!pte_valid || !is_leaf_pte) begin
-//                             page_fault    <= 1'b1;
-//                         end else begin
-//                             physical_address <= {pte_ppn, page_offset};
-//                         end
-//                         current_state <= STATE_DONE;
-//                     end
-//                 end
+endmodule
 
-//                 STATE_DONE: begin
-//                     //处理结束标志
-//                     memory_read_enable <= 1'b0;
-//                     address_valid      <= 1'b1;
-//                     request_ready      <= 1'b1;
-//                     current_state      <= STATE_IDLE;
-//                 end
-
-//                 default: current_state <= STATE_IDLE;
-//             endcase
-//         end
-//     end
-// endmodule
+/* verilator lint_on WIDTHTRUNC */

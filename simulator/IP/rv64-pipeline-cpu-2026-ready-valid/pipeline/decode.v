@@ -488,7 +488,8 @@ csrfile u_csrfile(
 	.decode_i_csr_rid1 	( csr_rid1 				),
 	.decode_i_csr_rid2  ( csr_rid2				),
 	.csr_o_csr_rdata1 	( decode_o_csr_rdata1   ),
-	.csr_o_csr_rdata2	(decode_o_csr_rdata2)
+	.csr_o_csr_rdata2	(decode_o_csr_rdata2),
+	.csr_o_csr_satp		(decode_o_csr_satp)
 );
 
 //--------------------------------csr----end------------------------------------------------------------------------------
